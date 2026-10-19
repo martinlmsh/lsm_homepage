@@ -1,0 +1,4 @@
+# Kopie nach .dev.vars (wird von wrangler lokal geladen, nicht committen)
+ADMIN_DEV_TOKEN=local-dev-token-aendern
+# CF_ACCESS_TEAM_DOMAIN=
+# CF_ACCESS_AUD=

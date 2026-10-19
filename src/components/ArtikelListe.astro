@@ -1,0 +1,60 @@
+---
+import Icon from './Icon.astro';
+import { formatDatum, typLabel, type ArtikelKarte } from '../lib/artikel';
+
+interface Props {
+	artikel: ArtikelKarte[];
+	eyebrow: string;
+	titel: string;
+	headingId: string;
+}
+
+const { artikel, eyebrow, titel, headingId } = Astro.props;
+---
+
+{
+	artikel.length > 0 && (
+		<section class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24" aria-labelledby={headingId}>
+			<div class="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+				<div>
+					<p class="text-xs font-medium uppercase tracking-widest text-muted-foreground">{eyebrow}</p>
+					<h2 id={headingId} class="mt-2 text-2xl font-semibold text-foreground sm:text-3xl">
+						{titel}
+					</h2>
+				</div>
+				<a
+					href="/wissenswertes/"
+					class="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4 transition-colors duration-150 hover:text-primary/80 active:text-primary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+				>
+					Alle Artikel
+				</a>
+			</div>
+			<ul>
+				{artikel.map((item) => (
+					<li class="border-b border-border">
+						<a
+							href={`/wissenswertes/${item.slug}/`}
+							class="group grid gap-4 py-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 sm:grid-cols-12 sm:gap-8"
+						>
+							<p class="text-sm text-muted-foreground sm:col-span-3">
+								<span class="font-medium text-foreground">{typLabel(item.typ)}</span>
+								{item.veroeffentlichtAm && (
+									<span class="block">{formatDatum(item.veroeffentlichtAm)}</span>
+								)}
+							</p>
+							<div class="sm:col-span-8">
+								<h3 class="text-xl font-semibold text-foreground transition-colors duration-150 group-hover:text-primary">
+									{item.titel}
+								</h3>
+								<p class="mt-2 max-w-2xl text-muted-foreground">{item.teaser}</p>
+							</div>
+							<span class="hidden h-12 w-12 items-center justify-center justify-self-end rounded-full border border-border text-foreground transition-colors duration-200 group-hover:border-action group-hover:bg-action group-hover:text-action-foreground sm:col-span-1 sm:inline-flex">
+								<Icon name="arrow" class="h-4 w-4" />
+							</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	)
+}

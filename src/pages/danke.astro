@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
+import ContactLink from '../components/ContactLink.astro';
+import Icon from '../components/Icon.astro';
+import { siteData } from '../data/site';
+
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const title = 'Danke für Ihre Anfrage | Lemisch';
+const description =
+	'Ihre Anfrage ist angekommen. Martin Lemisch meldet sich persönlich bei Ihnen – so geht es weiter.';
+
+const naechsteSchritte = [
+	{ titel: 'Kurzes Telefonat', text: 'ich verstehe Ihr Vorhaben.' },
+	{ titel: 'Termin bei Ihnen vor Ort', text: 'ich schaue mir alles genau an.' },
+	{ titel: 'Ich vergleiche', text: 'Sie entscheiden mit Durchblick.' },
+];
+
+const focusDark =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+	noindex={true}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: 'Danke', url: `${siteUrl}/danke/` },
+	]}
+>
+	<section
+		class="relative isolate flex min-h-[100dvh] items-center overflow-hidden bg-primary text-primary-foreground"
+		aria-labelledby="danke-heading"
+	>
+		<div
+			class="pointer-events-none absolute -bottom-32 -left-32 -z-10 h-96 w-96 rounded-full bg-action/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<BrandMark
+			class="pointer-events-none absolute -right-48 top-1/2 -z-10 h-176 w-176 -translate-y-1/2 text-primary-foreground/5 lg:-right-24"
+		/>
+
+		<div class="mx-auto grid w-full max-w-6xl gap-12 px-4 pb-16 pt-32 sm:px-6 sm:pt-40 lg:grid-cols-12 lg:items-center">
+			<div class="lg:col-span-7">
+				<span class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-action text-action-foreground">
+					<Icon name="check" class="h-7 w-7" />
+				</span>
+				<h1
+					id="danke-heading"
+					class="mt-8 max-w-2xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-5xl"
+				>
+					Danke<span data-vorname></span>!{' '}
+					<span class="text-primary-foreground/45">Ihre Anfrage ist bei mir angekommen.</span>
+				</h1>
+				<p class="mt-6 max-w-xl text-pretty text-lg text-primary-foreground/70">
+					Ich melde mich innerhalb von 24 Stunden persönlich bei Ihnen<span data-erreichbarkeit
+					></span>.
+				</p>
+
+				<div class="mt-8 flex flex-wrap gap-3">
+					<a
+						href="/"
+						class:list={[
+							'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-3 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+							focusDark,
+						]}
+					>
+						<Icon name="back" class="h-4 w-4 text-action" />
+						Zur Startseite
+					</a>
+					<ContactLink
+						type="phone"
+						class:list={[
+							'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-3 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+							focusDark,
+						]}
+					>
+						<Icon name="phone" class="h-4 w-4 text-action" />
+						<span data-contact-label>Telefon</span>
+					</ContactLink>
+				</div>
+			</div>
+
+			<div
+				class="rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5 p-6 backdrop-blur-md sm:p-8 lg:col-span-5"
+			>
+				<h2 class="font-display text-xl font-semibold text-primary-foreground">So geht’s weiter:</h2>
+				<ol class="mt-6 space-y-4">
+					{
+						naechsteSchritte.map((schritt, index) => (
+							<li class="flex gap-4 border-t border-primary-foreground/10 pt-4">
+								<span class="font-mono text-sm text-action">0{index + 1}</span>
+								<span class="text-primary-foreground/75">
+									<span class="font-semibold text-primary-foreground">{schritt.titel}</span> –{' '}
+									{schritt.text}
+								</span>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+		</div>
+	</section>
+</BaseLayout>
+
+<script>
+	try {
+		const daten = JSON.parse(sessionStorage.getItem('lsm-anfrage') ?? 'null');
+		if (daten?.vorname) {
+			document.querySelector('[data-vorname]')!.textContent = `, ${daten.vorname}`;
+		}
+		if (daten?.erreichbarkeit) {
+			document.querySelector('[data-erreichbarkeit]')!.textContent =
+				` – ${String(daten.erreichbarkeit).toLowerCase()}, wie gewünscht`;
+		}
+	} catch {
+		// Ohne gespeicherte Angaben bleibt der neutrale Text stehen.
+	}
+</script>

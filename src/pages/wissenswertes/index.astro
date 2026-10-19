@@ -1,0 +1,459 @@
+---
+export const prerender = false;
+
+import { env } from 'cloudflare:workers';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
+import { createDb } from '../../db/client';
+import {
+	formatDatum,
+	listDistinctPublishedTypen,
+	listPublishedArtikel,
+	listSuchDokumente,
+	PAGE_SIZE,
+	typLabel,
+} from '../../lib/artikel';
+import { markieren, suchbegriffe, suchen } from '../../lib/suche';
+
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300');
+
+const db = createDb(env.DB);
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+
+const typParam = Astro.url.searchParams.get('typ')?.trim() || undefined;
+const seiteRaw = Number(Astro.url.searchParams.get('seite') ?? '1');
+const seite = Number.isFinite(seiteRaw) && seiteRaw > 0 ? Math.floor(seiteRaw) : 1;
+
+const suchParam = Astro.url.searchParams.get('q')?.trim().slice(0, 100) || undefined;
+const begriffe = suchbegriffe(suchParam);
+const sucheAktiv = begriffe.length > 0;
+
+type Eintrag = { slug: string; titel: string; teaser: string; typLabel: string; datumText: string };
+
+let eintraege: Eintrag[];
+let total: number;
+let totalPages: number;
+let schwellen: number[] = [];
+
+if (sucheAktiv) {
+	const dokumente = (await listSuchDokumente(db)).filter((d) => !typParam || d.typ === typParam);
+	const ergebnis = suchen(dokumente, begriffe);
+	schwellen = ergebnis.schwellen;
+	total = ergebnis.treffer.length;
+	totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	eintraege = ergebnis.treffer.slice((seite - 1) * PAGE_SIZE, seite * PAGE_SIZE);
+} else {
+	const ergebnis = await listPublishedArtikel(db, { typ: typParam, seite });
+	total = ergebnis.total;
+	totalPages = ergebnis.totalPages;
+	eintraege = ergebnis.rows.map((row) => ({
+		slug: row.slug,
+		titel: row.titel,
+		teaser: row.teaser,
+		typLabel: typLabel(row.typ),
+		datumText: formatDatum(row.veroeffentlichtAm),
+	}));
+}
+
+const typen = await listDistinctPublishedTypen(db);
+
+const canonicalPath =
+	seite <= 1
+		? typParam
+			? `/wissenswertes/?typ=${encodeURIComponent(typParam)}`
+			: '/wissenswertes/'
+		: typParam
+			? `/wissenswertes/?typ=${encodeURIComponent(typParam)}&seite=${seite}`
+			: `/wissenswertes/?seite=${seite}`;
+
+const title = sucheAktiv
+	? 'Suche in Wissenswertes | Lemisch'
+	: seite <= 1
+		? 'Wissenswertes | Lemisch Sanierung'
+		: `Wissenswertes Seite ${seite} | Lemisch`;
+const description =
+	'Blogartikel und Projektberichte zu Sanierung und Modernisierung in der Region Tuttlingen und Umgebung.';
+
+function buildHref({
+	page = 1,
+	typ = typParam,
+	q = suchParam,
+}: {
+	page?: number;
+	typ?: string;
+	q?: string;
+}) {
+	const params = new URLSearchParams();
+	if (q) params.set('q', q);
+	if (typ) params.set('typ', typ);
+	if (page > 1) params.set('seite', String(page));
+	const qs = params.toString();
+	return qs ? `/wissenswertes/?${qs}` : '/wissenswertes/';
+}
+
+const statusText = sucheAktiv
+	? `${total} Treffer für „${suchParam}“${totalPages > 1 ? ` · Seite ${seite} von ${totalPages}` : ''}`
+	: total === 0
+		? 'Keine veröffentlichten Artikel.'
+		: `${total} Artikel · Seite ${seite} von ${totalPages}`;
+
+const pillBase =
+	'inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const pillActive = 'border-primary bg-primary text-primary-foreground';
+const pillIdle =
+	'border-border bg-background text-foreground hover:bg-muted active:bg-muted/80';
+const linkClass =
+	'inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4 transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const markClass = 'rounded-sm bg-action/25 text-current';
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+	canonical={sucheAktiv ? '/wissenswertes/' : canonicalPath}
+	noindex={sucheAktiv}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: 'Wissenswertes', url: `${siteUrl}/wissenswertes/` },
+	]}
+>
+	<PageHero
+		eyebrow="Ratgeber & Projekte"
+		title="Wissenswertes"
+		intro="Artikel und Projektberichte rund um Sanierung und Modernisierung – verständlich aufbereitet für Hausbesitzer in der Region."
+	/>
+
+	<div data-artikelsuche data-typ={typParam} data-seitengroesse={PAGE_SIZE}>
+		<section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6" aria-label="Suche und Filter">
+			<form
+				action="/wissenswertes/"
+				method="get"
+				role="search"
+				class="relative"
+				aria-label="Artikel durchsuchen"
+				data-suchformular
+			>
+				{typParam && <input type="hidden" name="typ" value={typParam} />}
+				<label for="artikel-suche" class="sr-only">Artikel nach Stichworten durchsuchen</label>
+				<Icon
+					name="search"
+					class="pointer-events-none absolute left-6 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+				/>
+				<input
+					type="search"
+					id="artikel-suche"
+					name="q"
+					value={suchParam ?? ''}
+					placeholder="Stichwort suchen, z. B. Wärmepumpe, Förderung, Dach …"
+					autocomplete="off"
+					enterkeyhint="search"
+					maxlength="100"
+					aria-controls="artikel-ergebnisse"
+					class="block min-h-14 w-full rounded-full border border-border bg-background py-4 pl-16 pr-36 text-base text-foreground transition-colors duration-150 placeholder:text-muted-foreground hover:border-primary/40 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&::-webkit-search-cancel-button]:hidden"
+					data-suchfeld
+				/>
+				<div class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
+					<a
+						href={buildHref({ q: undefined })}
+						class="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+						aria-label="Suche zurücksetzen"
+						hidden={!sucheAktiv}
+						data-zuruecksetzen
+					>
+						<Icon name="close" class="h-4 w-4" />
+					</a>
+					<button
+						type="submit"
+						class="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 font-display text-sm font-semibold text-primary-foreground transition-colors duration-150 hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					>
+						Suchen
+					</button>
+				</div>
+			</form>
+
+			<div class="mt-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
+				<div class="flex flex-wrap gap-2">
+					<a
+						href={buildHref({ typ: undefined })}
+						aria-current={!typParam ? 'page' : undefined}
+						class:list={[pillBase, !typParam ? pillActive : pillIdle]}
+						data-typ-filter=""
+					>
+						Alle
+					</a>
+					{
+						typen.map((typ) => (
+							<a
+								href={buildHref({ typ })}
+								aria-current={typParam === typ ? 'page' : undefined}
+								class:list={[pillBase, typParam === typ ? pillActive : pillIdle]}
+								data-typ-filter={typ}
+							>
+								{typLabel(typ)}
+							</a>
+						))
+					}
+				</div>
+				<p class="font-mono text-xs text-muted-foreground" role="status" aria-live="polite" data-suchstatus>
+					{statusText}
+				</p>
+			</div>
+		</section>
+
+		<section
+			id="artikel-ergebnisse"
+			class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+			aria-label="Artikel"
+		>
+			<div data-ergebnisse>
+				{
+					eintraege.length === 0 ? (
+						<div class="mt-12 rounded-3xl bg-muted p-8">
+							<p class="font-display text-xl font-semibold text-foreground">
+								{sucheAktiv
+									? `Zu „${suchParam}“ haben wir noch keinen Artikel.`
+									: 'In dieser Auswahl gibt es noch keine Artikel.'}
+							</p>
+							{sucheAktiv && (
+								<p class="mt-2 max-w-xl text-muted-foreground">
+									Versuchen Sie ein anderes Stichwort – oder fragen Sie direkt: Wir beantworten
+									Ihre Frage gern persönlich.
+								</p>
+							)}
+							<div class="mt-4 flex flex-wrap gap-x-6">
+								<a href="/wissenswertes/" class={linkClass}>
+									Alle Artikel anzeigen
+								</a>
+								{sucheAktiv && (
+									<a href="/#anfrage" class={linkClass}>
+										Frage stellen
+									</a>
+								)}
+							</div>
+						</div>
+					) : (
+						<ul>
+							{eintraege.map((item) => (
+								<li class="border-b border-border">
+									<a
+										href={`/wissenswertes/${item.slug}/`}
+										class="group grid gap-4 py-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 sm:grid-cols-12 sm:gap-8"
+									>
+										<p class="text-sm text-muted-foreground sm:col-span-3">
+											<span class="font-medium text-foreground">{item.typLabel}</span>
+											{item.datumText && <span class="block">{item.datumText}</span>}
+										</p>
+										<div class="sm:col-span-8">
+											<h2 class="text-2xl font-semibold text-foreground transition-colors duration-150 group-hover:text-primary">
+												{markieren(item.titel, begriffe, schwellen).map((teil) =>
+													teil.treffer ? <mark class={markClass}>{teil.text}</mark> : teil.text,
+												)}
+											</h2>
+											<p class="mt-2 max-w-2xl text-muted-foreground">
+												{markieren(item.teaser, begriffe, schwellen).map((teil) =>
+													teil.treffer ? <mark class={markClass}>{teil.text}</mark> : teil.text,
+												)}
+											</p>
+										</div>
+										<span class="hidden h-12 w-12 items-center justify-center justify-self-end rounded-full border border-border text-foreground transition-colors duration-200 group-hover:border-action group-hover:bg-action group-hover:text-action-foreground sm:col-span-1 sm:inline-flex">
+											<Icon name="arrow" class="h-4 w-4" />
+										</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					)
+				}
+			</div>
+
+			{
+				totalPages > 1 && (
+					<nav class="mt-12 flex flex-wrap items-center gap-3" aria-label="Seiten" data-seitennavigation>
+						{seite > 1 && (
+							<a href={buildHref({ page: seite - 1 })} class:list={[pillBase, pillIdle]}>
+								Zurück
+							</a>
+						)}
+						{seite < totalPages && (
+							<a href={buildHref({ page: seite + 1 })} class:list={[pillBase, pillIdle]}>
+								Weiter
+							</a>
+						)}
+						<span class="text-sm text-muted-foreground">
+							Seite {seite} / {totalPages} ({PAGE_SIZE} je Seite)
+						</span>
+					</nav>
+				)
+			}
+		</section>
+
+		<template data-vorlage-eintrag>
+			<li class="border-b border-border">
+				<a
+					class="group grid gap-4 py-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 sm:grid-cols-12 sm:gap-8"
+					data-feld-link
+				>
+					<p class="text-sm text-muted-foreground sm:col-span-3">
+						<span class="font-medium text-foreground" data-feld-typ></span>
+						<span class="block" data-feld-datum></span>
+					</p>
+					<div class="sm:col-span-8">
+						<h2
+							class="text-2xl font-semibold text-foreground transition-colors duration-150 group-hover:text-primary"
+							data-feld-titel
+						>
+						</h2>
+						<p class="mt-2 max-w-2xl text-muted-foreground" data-feld-teaser></p>
+					</div>
+					<span class="hidden h-12 w-12 items-center justify-center justify-self-end rounded-full border border-border text-foreground transition-colors duration-200 group-hover:border-action group-hover:bg-action group-hover:text-action-foreground sm:col-span-1 sm:inline-flex">
+						<Icon name="arrow" class="h-4 w-4" />
+					</span>
+				</a>
+			</li>
+		</template>
+
+		<template data-vorlage-leer>
+			<div class="mt-12 rounded-3xl bg-muted p-8">
+				<p class="font-display text-xl font-semibold text-foreground">
+					Zu „<span data-feld-suchwort></span>“ haben wir noch keinen Artikel.
+				</p>
+				<p class="mt-2 max-w-xl text-muted-foreground">
+					Versuchen Sie ein anderes Stichwort – oder fragen Sie direkt: Wir beantworten Ihre Frage
+					gern persönlich.
+				</p>
+				<div class="mt-4 flex flex-wrap gap-x-6">
+					<a href="/wissenswertes/" class={linkClass}>Alle Artikel anzeigen</a>
+					<a href="/#anfrage" class={linkClass}>Frage stellen</a>
+				</div>
+			</div>
+		</template>
+	</div>
+</BaseLayout>
+
+<script>
+	import { markieren, suchbegriffe, suchen, type SuchDokument } from '../../lib/suche';
+
+	const root = document.querySelector<HTMLElement>('[data-artikelsuche]');
+
+	if (root) {
+		const formular = root.querySelector<HTMLFormElement>('[data-suchformular]')!;
+		const feld = root.querySelector<HTMLInputElement>('[data-suchfeld]')!;
+		const zuruecksetzen = root.querySelector<HTMLAnchorElement>('[data-zuruecksetzen]')!;
+		const status = root.querySelector<HTMLElement>('[data-suchstatus]')!;
+		const ergebnisse = root.querySelector<HTMLElement>('[data-ergebnisse]')!;
+		const seitennavigation = root.querySelector<HTMLElement>('[data-seitennavigation]');
+		const vorlageEintrag = root.querySelector<HTMLTemplateElement>('[data-vorlage-eintrag]')!;
+		const vorlageLeer = root.querySelector<HTMLTemplateElement>('[data-vorlage-leer]')!;
+		const typFilter = [...root.querySelectorAll<HTMLAnchorElement>('[data-typ-filter]')];
+		const typ = root.dataset.typ ?? '';
+		const seitengroesse = Number(root.dataset.seitengroesse ?? '10');
+
+		const startHtml = ergebnisse.innerHTML;
+		const startStatus = status.textContent ?? '';
+		const startOhneSuche = suchbegriffe(feld.value).length === 0;
+
+		let index: Promise<SuchDokument[]> | null = null;
+		const indexLaden = () => {
+			index ??= fetch('/api/suche-index.json')
+				.then((antwort) => (antwort.ok ? antwort.json() : Promise.reject(antwort.status)))
+				.then((dokumente: SuchDokument[]) => dokumente.filter((d) => !typ || d.typ === typ))
+				.catch(() => {
+					index = null;
+					return [];
+				});
+			return index;
+		};
+
+		const urlFuer = (q: string, typWert: string) => {
+			const params = new URLSearchParams();
+			if (q) params.set('q', q);
+			if (typWert) params.set('typ', typWert);
+			const qs = params.toString();
+			return qs ? `/wissenswertes/?${qs}` : '/wissenswertes/';
+		};
+
+		const fuellen = (ziel: HTMLElement, text: string, begriffe: string[], schwellen: number[]) => {
+			ziel.replaceChildren(
+				...markieren(text, begriffe, schwellen).map((teil) => {
+					if (!teil.treffer) return document.createTextNode(teil.text);
+					const mark = document.createElement('mark');
+					mark.className = 'rounded-sm bg-action/25 text-current';
+					mark.textContent = teil.text;
+					return mark;
+				}),
+			);
+		};
+
+		const darstellen = (treffer: SuchDokument[], begriffe: string[], schwellen: number[], q: string) => {
+			if (treffer.length === 0) {
+				const leer = vorlageLeer.content.cloneNode(true) as DocumentFragment;
+				leer.querySelector('[data-feld-suchwort]')!.textContent = q;
+				ergebnisse.replaceChildren(leer);
+				return;
+			}
+			const liste = document.createElement('ul');
+			for (const dokument of treffer) {
+				const eintrag = vorlageEintrag.content.cloneNode(true) as DocumentFragment;
+				eintrag.querySelector<HTMLAnchorElement>('[data-feld-link]')!.href = `/wissenswertes/${dokument.slug}/`;
+				eintrag.querySelector('[data-feld-typ]')!.textContent = dokument.typLabel;
+				eintrag.querySelector('[data-feld-datum]')!.textContent = dokument.datumText;
+				fuellen(eintrag.querySelector('[data-feld-titel]')!, dokument.titel, begriffe, schwellen);
+				fuellen(eintrag.querySelector('[data-feld-teaser]')!, dokument.teaser, begriffe, schwellen);
+				liste.append(eintrag);
+			}
+			ergebnisse.replaceChildren(liste);
+		};
+
+		let laufNummer = 0;
+		const aktualisieren = async () => {
+			const lauf = ++laufNummer;
+			const q = feld.value.trim().slice(0, 100);
+			const begriffe = suchbegriffe(q);
+
+			zuruecksetzen.hidden = q.length === 0;
+			history.replaceState(null, '', urlFuer(begriffe.length ? q : '', typ));
+			typFilter.forEach((link) => (link.href = urlFuer(begriffe.length ? q : '', link.dataset.typFilter ?? '')));
+
+			if (begriffe.length === 0 && startOhneSuche) {
+				ergebnisse.innerHTML = startHtml;
+				status.textContent = startStatus;
+				if (seitennavigation) seitennavigation.hidden = false;
+				return;
+			}
+
+			const dokumente = await indexLaden();
+			if (lauf !== laufNummer) return;
+
+			if (seitennavigation) seitennavigation.hidden = true;
+
+			if (begriffe.length === 0) {
+				darstellen(dokumente.slice(0, seitengroesse), [], [], q);
+				status.textContent = `${dokumente.length} Artikel`;
+				return;
+			}
+
+			const { treffer, schwellen } = suchen(dokumente, begriffe);
+			darstellen(treffer, begriffe, schwellen, q);
+			status.textContent = `${treffer.length} Treffer für „${q}“`;
+		};
+
+		let zeitgeber: number | undefined;
+		feld.addEventListener('focus', () => void indexLaden(), { once: true });
+		feld.addEventListener('input', () => {
+			window.clearTimeout(zeitgeber);
+			zeitgeber = window.setTimeout(aktualisieren, 120);
+		});
+		formular.addEventListener('submit', (event) => {
+			event.preventDefault();
+			window.clearTimeout(zeitgeber);
+			void aktualisieren();
+		});
+		zuruecksetzen.addEventListener('click', (event) => {
+			event.preventDefault();
+			feld.value = '';
+			void aktualisieren();
+			feld.focus();
+		});
+	}
+</script>

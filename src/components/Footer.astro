@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { siteData } from '../data/site';
+import ContactLink from './ContactLink.astro';
+
+const leistungen = (await getCollection('leistungen')).sort(
+	(a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+const year = new Date().getFullYear();
+
+const linkClass =
+	'inline-flex min-h-11 items-center text-sm text-primary-foreground/65 transition-colors duration-150 hover:text-primary-foreground active:text-primary-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+---
+
+<footer class="border-t border-primary-foreground/10 bg-primary text-primary-foreground">
+	<div class="mx-auto max-w-6xl px-4 pb-8 pt-16 sm:px-6">
+		<div class="grid gap-12 lg:grid-cols-12">
+			<div class="lg:col-span-6">
+				<Image src={siteData.logoNegativ} alt="" class="h-16 w-auto sm:h-20" />
+				<p
+					class="mt-8 max-w-md text-balance font-display text-2xl font-semibold leading-tight tracking-tight text-primary-foreground"
+				>
+					{siteData.claim}
+				</p>
+				<p class="mt-4 text-sm text-primary-foreground/60">{siteData.tagline}</p>
+			</div>
+
+			<div class="grid gap-8 sm:grid-cols-3 lg:col-span-6">
+				<div>
+					<p class="text-xs font-medium uppercase tracking-widest text-primary-foreground/45">
+						Seiten
+					</p>
+					<ul class="mt-2">
+						{
+							leistungen.map((leistung) => (
+								<li>
+									<a href={`/${leistung.id}/`} class={linkClass}>
+										{leistung.data.kurztitel}
+									</a>
+								</li>
+							))
+						}
+						<li><a href="/ueber-uns/" class={linkClass}>Über uns</a></li>
+						<li><a href="/wissenswertes/" class={linkClass}>Wissenswertes</a></li>
+						<li><a href="/#anfrage" class={linkClass}>Anfrage</a></li>
+					</ul>
+				</div>
+
+				<div>
+					<p class="text-xs font-medium uppercase tracking-widest text-primary-foreground/45">
+						Kontakt
+					</p>
+					<ContactLink
+						type="phone"
+						class="mt-2 inline-flex min-h-11 items-center font-display text-base font-semibold text-action transition-colors duration-150 hover:text-action/80 active:text-action/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+					/>
+				</div>
+
+				<div>
+					<p class="text-xs font-medium uppercase tracking-widest text-primary-foreground/45">
+						Region
+					</p>
+					<ul class="mt-4 space-y-2 text-sm text-primary-foreground/65">
+						{siteData.areas.map((area) => <li>{area}</li>)}
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div
+			class="mt-16 flex flex-col gap-2 border-t border-primary-foreground/10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+		>
+			<p class="text-xs text-primary-foreground/45">© {year} {siteData.name}</p>
+			<ul class="flex gap-6">
+				<li><a href="/impressum/" class={linkClass}>Impressum</a></li>
+				<li><a href="/datenschutz/" class={linkClass}>Datenschutz</a></li>
+			</ul>
+		</div>
+	</div>
+</footer>

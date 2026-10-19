@@ -1,0 +1,178 @@
+---
+import { einzugsgebiet } from '../data/einzugsgebiet';
+
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const breite = 800;
+const hoehe = 750;
+const kmProPixel = 0.1333;
+const kmProGradBreite = 111.32;
+const kmProGradLaenge = kmProGradBreite * Math.cos((einzugsgebiet.mitte.lat * Math.PI) / 180);
+
+const cx = breite / 2;
+const cy = hoehe / 2;
+const projizieren = (lat: number, lon: number) => ({
+	x: cx + ((lon - einzugsgebiet.mitte.lon) * kmProGradLaenge) / kmProPixel,
+	y: cy - ((lat - einzugsgebiet.mitte.lat) * kmProGradBreite) / kmProPixel,
+});
+
+const radius = einzugsgebiet.radiusKm / kmProPixel;
+const ringe = [10, 20, 30].map((km) => km / kmProPixel);
+const massstabKm = 20;
+const massstab = massstabKm / kmProPixel;
+
+const orte = einzugsgebiet.orte.map((ort) => {
+	const { x, y } = projizieren(ort.lat, ort.lon);
+	const versatz = ort.haupt ? 14 : 12;
+	const zeilen = ort.label === 'links' && ort.name.includes('-')
+		? ort.name.replace('-', '-\n').split('\n')
+		: [ort.name];
+	return {
+		...ort,
+		x,
+		y,
+		zeilen,
+		textX: ort.label === 'links' ? x - versatz : ort.label === 'rechts' ? x + versatz : x,
+		anker: ort.label === 'links' ? 'end' : ort.label === 'rechts' ? 'start' : 'middle',
+	};
+});
+
+const hauptorte = einzugsgebiet.orte.filter((ort) => ort.haupt).map((ort) => ort.name);
+---
+
+<svg
+	viewBox={`0 0 ${breite} ${hoehe}`}
+	class:list={['block h-auto w-full', className]}
+	role="img"
+	aria-labelledby="karte-titel karte-beschreibung"
+>
+	<title id="karte-titel">Einzugsgebiet: {einzugsgebiet.radiusKm} km um {einzugsgebiet.mitte.name}</title>
+	<desc id="karte-beschreibung">
+		Schematische Karte mit einem Umkreis von {einzugsgebiet.radiusKm} Kilometern um
+		{einzugsgebiet.mitte.name}, darin unter anderem {hauptorte.join(', ')}.
+	</desc>
+
+	<defs>
+		<pattern id="karte-raster" width="24" height="24" patternUnits="userSpaceOnUse">
+			<circle cx="2" cy="2" r="1.25" class="fill-primary-foreground/10" />
+		</pattern>
+		<radialGradient id="karte-glow">
+			<stop offset="0%" class="[stop-color:var(--color-action)] [stop-opacity:0.28]" />
+			<stop offset="70%" class="[stop-color:var(--color-action)] [stop-opacity:0.08]" />
+			<stop offset="100%" class="[stop-color:var(--color-action)] [stop-opacity:0.02]" />
+		</radialGradient>
+	</defs>
+
+	<rect width={breite} height={hoehe} fill="url(#karte-raster)" />
+
+	<circle cx={cx} cy={cy} r={radius} fill="url(#karte-glow)" />
+	{
+		ringe.map((r) => (
+			<circle
+				cx={cx}
+				cy={cy}
+				r={r}
+				fill="none"
+				stroke-dasharray="2 8"
+				stroke-linecap="round"
+				class="stroke-primary-foreground/20"
+				stroke-width="1.5"
+			/>
+		))
+	}
+	<circle cx={cx} cy={cy} r={radius} fill="none" class="stroke-action" stroke-width="2.5" />
+
+	<line
+		x1={cx}
+		y1={cy}
+		x2={cx + radius * Math.cos((65 * Math.PI) / 180)}
+		y2={cy + radius * Math.sin((65 * Math.PI) / 180)}
+		stroke-dasharray="6 6"
+		class="stroke-action/60"
+		stroke-width="1.5"
+	/>
+
+	<g transform={`translate(${cx} ${cy - radius})`}>
+		<rect x="-88" y="-22" width="176" height="44" rx="22" class="fill-action" />
+		<text
+			text-anchor="middle"
+			dominant-baseline="central"
+			class="fill-action-foreground font-display text-[20px] font-semibold"
+		>
+			{einzugsgebiet.radiusKm} km Umkreis
+		</text>
+	</g>
+
+	{
+		orte.map((ort) => (
+			<g class:list={[!ort.haupt && 'max-sm:[&>text]:hidden']}>
+				<circle
+					cx={ort.x}
+					cy={ort.y}
+					r={ort.haupt ? 7 : 4}
+					class:list={[
+						ort.haupt
+							? 'fill-primary-foreground stroke-primary'
+							: 'fill-primary-foreground/50 stroke-primary',
+					]}
+					stroke-width="3"
+				/>
+				<text
+					x={ort.textX}
+					y={ort.y - ((ort.zeilen.length - 1) * (ort.haupt ? 30 : 22)) / 2}
+					text-anchor={ort.anker}
+					dominant-baseline="central"
+					class:list={[
+						ort.haupt
+							? 'fill-primary-foreground font-display text-[28px] font-semibold'
+							: 'fill-primary-foreground/55 font-sans text-[20px]',
+					]}
+				>
+					{ort.zeilen.map((zeile, index) => (
+						<tspan x={ort.textX} dy={index === 0 ? 0 : ort.haupt ? 30 : 22}>
+							{zeile}
+						</tspan>
+					))}
+				</text>
+			</g>
+		))
+	}
+
+	<circle
+		cx={cx}
+		cy={cy}
+		r="16"
+		class="origin-center fill-action/40 [transform-box:fill-box] motion-safe:animate-ping"
+	/>
+	<circle cx={cx} cy={cy} r="10" class="fill-action stroke-primary" stroke-width="4" />
+	<text
+		x={cx}
+		y={cy + 48}
+		text-anchor="middle"
+		dominant-baseline="central"
+		class="fill-action font-display text-[28px] font-semibold"
+	>
+		{einzugsgebiet.mitte.name}
+	</text>
+
+	<g transform={`translate(32 ${hoehe - 40})`} class="max-sm:hidden">
+		<line x1="0" y1="0" x2={massstab} y2="0" class="stroke-primary-foreground/50" stroke-width="2" />
+		<line x1="0" y1="-6" x2="0" y2="6" class="stroke-primary-foreground/50" stroke-width="2" />
+		<line x1={massstab} y1="-6" x2={massstab} y2="6" class="stroke-primary-foreground/50" stroke-width="2" />
+		<text x={massstab / 2} y="-18" text-anchor="middle" class="fill-primary-foreground/55 font-sans text-[16px]">
+			{massstabKm} km
+		</text>
+	</g>
+
+	<g transform={`translate(${breite - 48} 56)`}>
+		<circle r="22" fill="none" class="stroke-primary-foreground/25" stroke-width="1.5" />
+		<path d="M0 -14 L6 4 L0 0 L-6 4 Z" class="fill-primary-foreground/70" />
+		<text y="-34" text-anchor="middle" class="fill-primary-foreground/55 font-display text-[16px] font-semibold">
+			N
+		</text>
+	</g>
+</svg>

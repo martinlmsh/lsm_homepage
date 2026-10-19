@@ -1,0 +1,93 @@
+---
+export const prerender = false;
+
+import { env } from 'cloudflare:workers';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ArtikelAnsicht from '../../../../components/ArtikelAnsicht.astro';
+import { createDb } from '../../../../db/client';
+import { gateAdmin } from '../../../../lib/admin-page';
+import { getArtikelById } from '../../../../lib/artikel-admin';
+import { getBilderByR2Keys, listVerwandteArtikel } from '../../../../lib/artikel';
+import { extractBildKeys } from '../../../../lib/editor-markdown';
+import { bilderAlsImageMetas, renderMarkdown } from '../../../../lib/markdown';
+
+const gated = await gateAdmin(Astro);
+if (gated instanceof Response) return gated;
+
+const id = Astro.params.id;
+if (!id) return Astro.redirect('/admin/artikel/');
+
+const db = createDb(env.DB);
+const entry = await getArtikelById(db, id);
+if (!entry) return Astro.redirect('/admin/artikel/');
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+
+const verwandte = await listVerwandteArtikel(db, entry);
+
+const inhaltKeys = extractBildKeys(entry.inhaltMd);
+const titelKey = entry.titelbild?.r2Key;
+const allKeys = [...new Set([...inhaltKeys, ...(titelKey ? [titelKey] : [])])];
+const bildRows = await getBilderByR2Keys(db, allKeys);
+const contentHtml = await renderMarkdown(entry.inhaltMd, {
+	images: bilderAlsImageMetas(bildRows),
+});
+
+const leistungen = await getCollection('leistungen');
+const linkedLeistung = entry.leistung
+	? leistungen.find((l) => l.id === entry.leistung)
+	: undefined;
+
+const statusLabel = entry.status === 'veroeffentlicht' ? 'veröffentlicht' : 'Entwurf';
+---
+
+<BaseLayout
+	title={`Vorschau: ${entry.metaTitle}`}
+	description={entry.metaDescription}
+	canonical={`/wissenswertes/${entry.slug}/`}
+	noindex
+>
+	<div
+		class="sticky top-0 z-20 border-b border-border bg-primary text-primary-foreground"
+		role="status"
+	>
+		<div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+			<p class="text-sm">
+				<span class="font-semibold">Vorschau</span>
+				<span class="text-primary-foreground/70">
+					{' '}· so sieht der Artikel nach der Veröffentlichung aus · Status: {statusLabel}
+				</span>
+			</p>
+			<div class="flex flex-wrap gap-2">
+				<a
+					href={`/admin/artikel/${entry.id}/`}
+					class="inline-flex min-h-11 items-center justify-center rounded-md border border-primary-foreground/30 bg-transparent px-4 py-2 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+				>
+					Zurück zum Editor
+				</a>
+				{
+					entry.status === 'veroeffentlicht' && (
+						<a
+							href={`/wissenswertes/${entry.slug}/`}
+							target="_blank"
+							rel="noopener"
+							class="inline-flex min-h-11 items-center justify-center rounded-md bg-action px-4 py-2 font-display text-sm font-bold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+						>
+							Öffentliche Seite
+						</a>
+					)
+				}
+			</div>
+		</div>
+	</div>
+
+	<ArtikelAnsicht
+		entry={entry}
+		contentHtml={contentHtml}
+		verwandte={verwandte}
+		linkedLeistung={linkedLeistung}
+		vorschau
+	/>
+</BaseLayout>

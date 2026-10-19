@@ -1,0 +1,295 @@
+---
+import { getCollection } from 'astro:content';
+import type { Artikel, Bild } from '../db/schema';
+import ArtikelEditor from './ArtikelEditor.astro';
+
+interface Props {
+	artikel?: Artikel | null;
+	bilder: Bild[];
+}
+
+const { artikel = null, bilder } = Astro.props;
+const isEdit = Boolean(artikel);
+const leistungen = (await getCollection('leistungen')).sort(
+	(a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+const aktuelleLeistung = artikel?.leistung ?? '';
+const leistungUnbekannt =
+	aktuelleLeistung !== '' && !leistungen.some((l) => l.id === aktuelleLeistung);
+---
+
+<form id="artikel-form" class="space-y-6" data-id={artikel?.id ?? ''}>
+	<div class="grid gap-4 sm:grid-cols-2">
+		<label class="block text-sm font-medium sm:col-span-2">
+			Titel
+			<input
+				name="titel"
+				required
+				maxlength="200"
+				value={artikel?.titel ?? ''}
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</label>
+		<label class="block text-sm font-medium">
+			Slug
+			<input
+				name="slug"
+				required
+				pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+				value={artikel?.slug ?? ''}
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</label>
+		<label class="block text-sm font-medium">
+			Typ
+			<select
+				name="typ"
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			>
+				<option value="blogartikel" selected={artikel?.typ === 'blogartikel' || !artikel}>
+					Blogartikel
+				</option>
+				<option value="projektbericht" selected={artikel?.typ === 'projektbericht'}>
+					Projektbericht
+				</option>
+			</select>
+		</label>
+		<label class="block text-sm font-medium sm:col-span-2">
+			Teaser
+			<textarea
+				name="teaser"
+				required
+				maxlength="500"
+				rows="2"
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			>{artikel?.teaser ?? ''}</textarea>
+		</label>
+		<ArtikelEditor initialMarkdown={artikel?.inhaltMd ?? ''} bilder={bilder} />
+		<label class="block text-sm font-medium">
+			Meta-Title (max. 60)
+			<input
+				name="metaTitle"
+				required
+				maxlength="60"
+				value={artikel?.metaTitle ?? ''}
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</label>
+		<label class="block text-sm font-medium">
+			Meta-Description (max. 155)
+			<input
+				name="metaDescription"
+				required
+				maxlength="155"
+				value={artikel?.metaDescription ?? ''}
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</label>
+		<label class="block text-sm font-medium">
+			Leistung (optional)
+			<select
+				name="leistung"
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			>
+				<option value="" selected={aktuelleLeistung === ''}>Keine Leistung</option>
+				{
+					leistungen.map((l) => (
+						<option value={l.id} selected={l.id === aktuelleLeistung}>
+							{l.data.kurztitel}
+						</option>
+					))
+				}
+				{
+					leistungUnbekannt && (
+						<option value={aktuelleLeistung} selected>
+							{aktuelleLeistung} (unbekannt)
+						</option>
+					)
+				}
+			</select>
+		</label>
+		<label class="block text-sm font-medium">
+			Ort (optional)
+			<input
+				name="ort"
+				value={artikel?.ort ?? ''}
+				placeholder="Tuttlingen"
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</label>
+		<label class="block text-sm font-medium sm:col-span-2">
+			Titelbild
+			<select
+				name="titelbildId"
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			>
+				<option value="">Kein Titelbild</option>
+				{
+					bilder.map((b) => (
+						<option value={b.id} selected={artikel?.titelbildId === b.id}>
+							{b.alt} ({b.r2Key})
+						</option>
+					))
+				}
+			</select>
+		</label>
+	</div>
+
+	<p id="form-status" class="text-sm" aria-live="polite" hidden></p>
+
+	<div class="flex flex-wrap gap-3">
+		<button
+			type="submit"
+			data-action="save"
+			class="inline-flex min-h-11 items-center justify-center rounded-md bg-action px-4 py-2 font-display text-sm font-bold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		>
+			Speichern
+		</button>
+		<button
+			type="button"
+			data-action="preview"
+			class="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-muted active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		>
+			Vorschau
+		</button>
+		{
+			isEdit && (
+				<>
+					<button
+						type="button"
+						data-action="publish"
+						class="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					>
+						{artikel?.status === 'veroeffentlicht' ? 'Als Entwurf' : 'Veröffentlichen'}
+					</button>
+					<button
+						type="button"
+						data-action="delete"
+						class="inline-flex min-h-11 items-center justify-center rounded-md border border-destructive px-4 py-2 text-sm font-medium text-destructive transition-colors duration-150 hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					>
+						Löschen
+					</button>
+					{artikel?.status === 'veroeffentlicht' && (
+						<a
+							href={`/wissenswertes/${artikel.slug}/`}
+							target="_blank"
+							rel="noopener"
+							class="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						>
+							Öffentliche Seite
+						</a>
+					)}
+				</>
+			)
+		}
+	</div>
+</form>
+
+<script>
+	const form = document.getElementById('artikel-form') as HTMLFormElement | null;
+	const statusEl = document.getElementById('form-status');
+	const id = form?.dataset.id ?? '';
+
+	function payloadFromForm(formEl: HTMLFormElement) {
+		const fd = new FormData(formEl);
+		const titelbildId = String(fd.get('titelbildId') ?? '');
+		return {
+			titel: String(fd.get('titel') ?? ''),
+			slug: String(fd.get('slug') ?? ''),
+			typ: String(fd.get('typ') ?? ''),
+			teaser: String(fd.get('teaser') ?? ''),
+			inhaltMd: String(fd.get('inhaltMd') ?? ''),
+			metaTitle: String(fd.get('metaTitle') ?? ''),
+			metaDescription: String(fd.get('metaDescription') ?? ''),
+			leistung: String(fd.get('leistung') ?? '') || null,
+			ort: String(fd.get('ort') ?? '') || null,
+			titelbildId: titelbildId || null,
+			quelle: 'editor',
+		};
+	}
+
+	function showStatus(msg: string, ok: boolean) {
+		if (!statusEl) return;
+		statusEl.hidden = false;
+		statusEl.textContent = msg;
+		statusEl.className = ok ? 'text-sm text-secondary' : 'text-sm text-destructive';
+	}
+
+	async function speichern(): Promise<string | null> {
+		if (!form) return null;
+		const body = payloadFromForm(form);
+		const aktuelleId = form.dataset.id ?? '';
+		const res = await fetch(
+			aktuelleId ? `/api/admin/artikel/${aktuelleId}` : '/api/admin/artikel',
+			{
+				method: aktuelleId ? 'PUT' : 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body),
+			},
+		);
+		const data = (await res.json().catch(() => ({}))) as { error?: string; id?: string };
+		if (!res.ok) {
+			showStatus(data.error ?? 'Speichern fehlgeschlagen', false);
+			return null;
+		}
+		const neueId = aktuelleId || data.id || null;
+		if (neueId && !aktuelleId) {
+			form.dataset.id = neueId;
+		}
+		return neueId;
+	}
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const gespeicherteId = await speichern();
+		if (!gespeicherteId) return;
+		if (!id) {
+			window.location.href = `/admin/artikel/${gespeicherteId}/`;
+			return;
+		}
+		showStatus('Gespeichert.', true);
+	});
+
+	form?.querySelector('[data-action="preview"]')?.addEventListener('click', async () => {
+		const gespeicherteId = await speichern();
+		if (!gespeicherteId) return;
+		showStatus('Gespeichert – Vorschau wird geöffnet.', true);
+		window.open(`/admin/artikel/${gespeicherteId}/vorschau/`, '_blank', 'noopener');
+		if (!id) {
+			window.location.href = `/admin/artikel/${gespeicherteId}/`;
+		}
+	});
+
+	form?.querySelector('[data-action="publish"]')?.addEventListener('click', async () => {
+		if (!id) return;
+		const current = form.dataset.status ?? '';
+		const next = current === 'veroeffentlicht' ? 'entwurf' : 'veroeffentlicht';
+		const res = await fetch(`/api/admin/artikel/${id}/status`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ status: next }),
+		});
+		const data = (await res.json().catch(() => ({}))) as { error?: string };
+		if (!res.ok) {
+			showStatus(data.error ?? 'Statuswechsel fehlgeschlagen', false);
+			return;
+		}
+		window.location.reload();
+	});
+
+	form?.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
+		if (!id) return;
+		if (!confirm('Artikel wirklich löschen?')) return;
+		const res = await fetch(`/api/admin/artikel/${id}`, { method: 'DELETE' });
+		if (!res.ok) {
+			const data = (await res.json().catch(() => ({}))) as { error?: string };
+			showStatus(data.error ?? 'Löschen fehlgeschlagen', false);
+			return;
+		}
+		window.location.href = '/admin/artikel/';
+	});
+
+	if (form && id) {
+		form.dataset.status = document.querySelector('[data-artikel-status]')?.getAttribute('data-artikel-status') ?? '';
+	}
+</script>

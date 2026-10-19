@@ -1,0 +1,169 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createDb } from '../../../db/client';
+import { env } from 'cloudflare:workers';
+import { gateAdmin } from '../../../lib/admin-page';
+import { listAdminArtikel } from '../../../lib/artikel-admin';
+import { typLabel } from '../../../lib/artikel';
+
+const gated = await gateAdmin(Astro);
+if (gated instanceof Response) return gated;
+
+const status = Astro.url.searchParams.get('status') ?? undefined;
+const typ = Astro.url.searchParams.get('typ') ?? undefined;
+const seite = Number(Astro.url.searchParams.get('seite') ?? '1') || 1;
+
+const db = createDb(env.DB);
+const { rows, total, totalPages } = await listAdminArtikel(db, {
+	status,
+	typ,
+	seite,
+});
+---
+
+<AdminLayout title="Artikel | Admin">
+	<div class="flex flex-wrap items-end justify-between gap-4">
+		<div>
+			<h1 class="font-display text-3xl font-bold text-primary">Artikel</h1>
+			<p class="mt-1 text-sm text-muted-foreground">{total} Einträge</p>
+		</div>
+		<a
+			href="/admin/artikel/neu/"
+			class="inline-flex min-h-11 items-center justify-center rounded-md bg-action px-4 py-2 font-display text-sm font-bold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		>
+			Neuer Artikel
+		</a>
+	</div>
+
+	<div class="mt-6 flex flex-wrap gap-2">
+		<a
+			href="/admin/artikel/"
+			class:list={[
+				'inline-flex min-h-11 items-center rounded-md border px-3 text-sm',
+				!status
+					? 'border-primary bg-primary text-primary-foreground'
+					: 'border-border bg-background hover:bg-muted',
+			]}
+		>
+			Alle
+		</a>
+		<a
+			href="/admin/artikel/?status=veroeffentlicht"
+			class:list={[
+				'inline-flex min-h-11 items-center rounded-md border px-3 text-sm',
+				status === 'veroeffentlicht'
+					? 'border-primary bg-primary text-primary-foreground'
+					: 'border-border bg-background hover:bg-muted',
+			]}
+		>
+			Veröffentlicht
+		</a>
+		<a
+			href="/admin/artikel/?status=entwurf"
+			class:list={[
+				'inline-flex min-h-11 items-center rounded-md border px-3 text-sm',
+				status === 'entwurf'
+					? 'border-primary bg-primary text-primary-foreground'
+					: 'border-border bg-background hover:bg-muted',
+			]}
+		>
+			Entwürfe
+		</a>
+	</div>
+
+	<div class="mt-6 overflow-x-auto rounded-md border border-border bg-background">
+		<table class="w-full min-w-[40rem] text-left text-sm">
+			<thead class="border-b border-border bg-muted">
+				<tr>
+					<th class="px-4 py-3 font-display font-semibold">Titel</th>
+					<th class="px-4 py-3 font-display font-semibold">Typ</th>
+					<th class="px-4 py-3 font-display font-semibold">Status</th>
+					<th class="px-4 py-3 font-display font-semibold">Aktualisiert</th>
+					<th class="px-4 py-3 font-display font-semibold"><span class="sr-only">Aktionen</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					rows.length === 0 ? (
+						<tr>
+							<td colspan="5" class="px-4 py-8 text-muted-foreground">
+								Keine Artikel.
+							</td>
+						</tr>
+					) : (
+						rows.map((row) => (
+							<tr class="border-b border-border last:border-0">
+								<td class="px-4 py-3">
+									<p class="font-medium text-foreground">{row.titel}</p>
+									<p class="text-xs text-muted-foreground">/{row.slug}/</p>
+								</td>
+								<td class="px-4 py-3">{typLabel(row.typ)}</td>
+								<td class="px-4 py-3">
+									<span
+										class:list={[
+											'inline-block rounded-md px-2 py-1 text-xs font-medium',
+											row.status === 'veroeffentlicht'
+												? 'bg-secondary/20 text-secondary'
+												: 'bg-muted text-muted-foreground',
+										]}
+									>
+										{row.status}
+									</span>
+								</td>
+								<td class="px-4 py-3 text-muted-foreground">
+									{row.aktualisiertAm?.slice(0, 10) ?? '–'}
+								</td>
+								<td class="px-4 py-3 text-right">
+									<div class="flex flex-wrap items-center justify-end gap-3">
+										<a
+											href={`/admin/artikel/${row.id}/vorschau/`}
+											target="_blank"
+											rel="noopener"
+											class="inline-flex min-h-11 items-center text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+										>
+											Vorschau
+										</a>
+										<a
+											href={`/admin/artikel/${row.id}/`}
+											class="inline-flex min-h-11 items-center font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+										>
+											Bearbeiten
+										</a>
+									</div>
+								</td>
+							</tr>
+						))
+					)
+				}
+			</tbody>
+		</table>
+	</div>
+
+	{
+		totalPages > 1 && (
+			<nav class="mt-6 flex gap-2" aria-label="Seiten">
+				{Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+					const q = new URLSearchParams();
+					if (status) q.set('status', status);
+					if (typ) q.set('typ', typ);
+					q.set('seite', String(p));
+					return (
+						<a
+							href={`/admin/artikel/?${q}`}
+							class:list={[
+								'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border text-sm',
+								p === seite
+									? 'border-primary bg-primary text-primary-foreground'
+									: 'border-border bg-background hover:bg-muted',
+							]}
+						>
+							{p}
+						</a>
+					);
+				})}
+			</nav>
+		)
+	}
+</AdminLayout>

@@ -1,0 +1,565 @@
+---
+import Icon from './Icon.astro';
+import {
+	erreichbarkeitOptionen,
+	leistungVorauswahl,
+	plzImGebiet,
+	sorgeOptionen,
+	vorhabenOptionen,
+	wunschOptionen,
+	zeitpunktOptionen,
+} from '../data/funnel';
+
+interface Props {
+	selectedLeistung?: string;
+}
+
+const { selectedLeistung } = Astro.props;
+const vorauswahl = selectedLeistung ? (leistungVorauswahl[selectedLeistung] ?? {}) : {};
+
+const webhookUrl = (import.meta.env.PUBLIC_LEAD_WEBHOOK_URL as string | undefined)?.trim() ?? '';
+const simulieren = import.meta.env.DEV && !webhookUrl;
+
+const fortschritt = ['vorhaben', 'wunsch', 'frage3', 'region', 'kontakt'];
+
+const legendClass =
+	'font-display text-2xl font-semibold leading-tight tracking-tight text-foreground focus-visible:outline-none sm:text-3xl';
+const optionClass =
+	'group flex min-h-14 cursor-pointer items-center gap-4 rounded-2xl border border-border bg-background p-4 text-foreground transition-colors duration-150 hover:border-primary/40 hover:bg-muted/40 active:bg-muted/60 has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2';
+const iconTileClass =
+	'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-primary transition-colors duration-150 group-has-[:checked]:bg-primary group-has-[:checked]:text-primary-foreground';
+const checkboxClass =
+	'ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border text-primary-foreground transition-colors duration-150 group-has-[:checked]:border-primary group-has-[:checked]:bg-primary';
+const radioClass =
+	'ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border transition-colors duration-150 group-has-[:checked]:border-primary';
+const labelClass = 'block text-sm font-medium text-foreground';
+const fieldClass =
+	'mt-2 block w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground transition-colors duration-150 placeholder:text-muted-foreground hover:border-primary/40 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const primaryButton =
+	'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+const backButton =
+	'inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const fehlerClass = 'mt-4 text-sm font-medium text-destructive';
+---
+
+<div
+	class="rounded-3xl bg-background p-6 text-foreground shadow-2xl shadow-primary/30 sm:p-8"
+	role="region"
+	aria-labelledby="lead-form-heading"
+	data-funnel
+	data-webhook={webhookUrl}
+	data-simulieren={simulieren ? 'true' : undefined}
+	data-plz={JSON.stringify(plzImGebiet)}
+>
+	<div data-fortschritt hidden>
+		<p class="text-xs font-medium uppercase tracking-widest text-muted-foreground" aria-live="polite">
+			<span data-fortschritt-text></span>
+		</p>
+		<div class="mt-3 grid grid-cols-5 gap-1" aria-hidden="true">
+			{
+				fortschritt.map((schritt) => (
+					<span
+						class="h-1 rounded-full bg-muted transition-colors duration-200 data-[aktiv]:bg-action"
+						data-fortschritt-balken={schritt}
+					/>
+				))
+			}
+		</div>
+	</div>
+
+	<form class="min-h-112" novalidate data-funnel-form>
+		<div class="hidden" aria-hidden="true">
+			<label for="website">Website</label>
+			<input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+		</div>
+
+		<section data-schritt="start" class="flex min-h-112 flex-col justify-between gap-8">
+			<div>
+				<span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-action text-action-foreground">
+					<Icon name="arrow" class="h-5 w-5" />
+				</span>
+				<h3
+					id="lead-form-heading"
+					class="mt-6 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+					tabindex="-1"
+					data-schritt-titel
+				>
+					Neue Heizung, PV oder Ausbau?{' '}
+					<span class="text-muted-foreground/60">In 60 Sekunden zum passenden Betrieb.</span>
+				</h3>
+				<ul class="mt-6 flex flex-wrap gap-2 text-sm text-foreground">
+					{
+						['Geprüfte Partner aus der Region.', 'Ein Ansprechpartner.', 'Unverbindlich.'].map(
+							(punkt) => (
+								<li class="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1">
+									<Icon name="check" class="h-4 w-4 text-action" />
+									{punkt}
+								</li>
+							),
+						)
+					}
+				</ul>
+			</div>
+			<div>
+				<button type="button" class:list={[primaryButton, 'w-full sm:w-auto']} data-weiter>
+					<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+					Jetzt starten
+				</button>
+				<noscript>
+					<p class="mt-4 text-sm text-muted-foreground">
+						Für die Anfrage wird JavaScript benötigt. Bitte aktivieren Sie JavaScript oder nutzen
+						Sie die Kontaktdaten im{' '}
+						<a href="/impressum/" class="font-medium text-primary underline underline-offset-4">
+							Impressum
+						</a>
+						.
+					</p>
+				</noscript>
+			</div>
+		</section>
+
+		<fieldset data-schritt="vorhaben" data-label="Schritt 1 von 4 – Vorhaben" class="mt-6" hidden>
+			<legend class={legendClass} tabindex="-1" data-schritt-titel>Was haben Sie vor?</legend>
+			<p class="mt-2 text-sm text-muted-foreground">Mehrfachauswahl möglich</p>
+			<div class="mt-6 grid gap-3">
+				{
+					vorhabenOptionen.map((option) => (
+						<label class={optionClass}>
+							<input
+								type="checkbox"
+								name="vorhaben"
+								value={option.label}
+								class="sr-only"
+								checked={vorauswahl.vorhaben === option.value ? true : undefined}
+							/>
+							<span class={iconTileClass}>
+								<Icon name={option.icon} class="h-5 w-5" />
+							</span>
+							<span class="font-medium">{option.label}</span>
+							<span class={checkboxClass}>
+								<Icon name="check" class="h-4 w-4 opacity-0 group-has-[:checked]:opacity-100" />
+							</span>
+						</label>
+					))
+				}
+			</div>
+			<p class={fehlerClass} role="alert" data-fehler hidden>
+				Bitte wählen Sie mindestens eine Option.
+			</p>
+			<div class="mt-8 flex items-center justify-between gap-4">
+				<button type="button" class={backButton} data-zurueck>
+					<Icon name="back" class="h-4 w-4" />
+					Zurück
+				</button>
+				<button type="button" class={primaryButton} data-weiter>Weiter</button>
+			</div>
+		</fieldset>
+
+		<fieldset data-schritt="wunsch" data-label="Schritt 2 von 4 – Ihr Wunsch" class="mt-6" hidden>
+			<legend class={legendClass} tabindex="-1" data-schritt-titel>Wie kann ich Ihnen helfen?</legend>
+			<div class="mt-6 grid gap-3">
+				{
+					wunschOptionen.map((option) => (
+						<label class:list={[optionClass, 'items-start']}>
+							<input
+								type="radio"
+								name="wunsch"
+								value={option.value}
+								data-label={option.label}
+								class="sr-only"
+								checked={vorauswahl.wunsch === option.value ? true : undefined}
+								data-auto-weiter
+							/>
+							<span class={iconTileClass}>
+								<Icon name={option.icon} class="h-5 w-5" />
+							</span>
+							<span>
+								<span class="block font-display text-lg font-semibold">{option.label}</span>
+								<span class="mt-1 block text-sm text-muted-foreground">{option.text}</span>
+							</span>
+							<span class={radioClass}>
+								<span class="h-2.5 w-2.5 rounded-full bg-primary opacity-0 group-has-[:checked]:opacity-100" />
+							</span>
+						</label>
+					))
+				}
+			</div>
+			<p class={fehlerClass} role="alert" data-fehler hidden>Bitte wählen Sie eine Option.</p>
+			<div class="mt-8 flex items-center justify-between gap-4">
+				<button type="button" class={backButton} data-zurueck>
+					<Icon name="back" class="h-4 w-4" />
+					Zurück
+				</button>
+				<button type="button" class={primaryButton} data-weiter>Weiter</button>
+			</div>
+		</fieldset>
+
+		<fieldset data-schritt="zeitpunkt" data-label="Schritt 3 von 4 – Zeitplan" class="mt-6" hidden>
+			<legend class={legendClass} tabindex="-1" data-schritt-titel>Wann soll es losgehen?</legend>
+			<div class="mt-6 grid gap-3 sm:grid-cols-2">
+				{
+					zeitpunktOptionen.map((option) => (
+						<label class={optionClass}>
+							<input type="radio" name="zeitpunkt" value={option} class="sr-only" data-auto-weiter />
+							<span class="font-medium">{option}</span>
+							<span class={radioClass}>
+								<span class="h-2.5 w-2.5 rounded-full bg-primary opacity-0 group-has-[:checked]:opacity-100" />
+							</span>
+						</label>
+					))
+				}
+			</div>
+			<p class={fehlerClass} role="alert" data-fehler hidden>Bitte wählen Sie eine Option.</p>
+			<div class="mt-8 flex items-center justify-between gap-4">
+				<button type="button" class={backButton} data-zurueck>
+					<Icon name="back" class="h-4 w-4" />
+					Zurück
+				</button>
+				<button type="button" class={primaryButton} data-weiter>Weiter</button>
+			</div>
+		</fieldset>
+
+		<fieldset data-schritt="sorge" data-label="Schritt 3 von 4 – Ihre Angebote" class="mt-6" hidden>
+			<legend class={legendClass} tabindex="-1" data-schritt-titel>
+				Was macht Ihnen bei Ihren Angeboten am meisten Sorgen?
+			</legend>
+			<div class="mt-6 grid gap-3">
+				{
+					sorgeOptionen.map((option) => (
+						<label class={optionClass}>
+							<input type="radio" name="sorge" value={option} class="sr-only" data-auto-weiter />
+							<span class="font-medium">{option}</span>
+							<span class={radioClass}>
+								<span class="h-2.5 w-2.5 rounded-full bg-primary opacity-0 group-has-[:checked]:opacity-100" />
+							</span>
+						</label>
+					))
+				}
+			</div>
+			<p class={fehlerClass} role="alert" data-fehler hidden>Bitte wählen Sie eine Option.</p>
+			<div class="mt-8 flex items-center justify-between gap-4">
+				<button type="button" class={backButton} data-zurueck>
+					<Icon name="back" class="h-4 w-4" />
+					Zurück
+				</button>
+				<button type="button" class={primaryButton} data-weiter>Weiter</button>
+			</div>
+		</fieldset>
+
+		<fieldset data-schritt="region" data-label="Schritt 4 von 4 – Region" class="mt-6" hidden>
+			<legend class={legendClass} tabindex="-1" data-schritt-titel>
+				Wo soll Ihr Projekt umgesetzt werden?
+			</legend>
+			<div class="mt-6 max-w-xs">
+				<label for="plz" class={labelClass}>Postleitzahl</label>
+				<input
+					type="text"
+					id="plz"
+					name="plz"
+					inputmode="numeric"
+					autocomplete="postal-code"
+					maxlength="5"
+					pattern="[0-9]{5}"
+					placeholder="z. B. 78647"
+					class:list={[fieldClass, 'font-mono text-lg tracking-widest']}
+					aria-describedby="plz-hinweis"
+					data-plz-feld
+				/>
+			</div>
+			<p id="plz-hinweis" class="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+				<Icon name="pin" class="mt-0.5 h-4 w-4 shrink-0 text-action" />
+				Ich arbeite mit Betrieben aus der Region Trossingen, Tuttlingen und Rottweil.
+			</p>
+			<p class={fehlerClass} role="alert" data-fehler hidden>
+				Bitte geben Sie eine gültige Postleitzahl mit 5 Ziffern ein.
+			</p>
+			<div class="mt-6 rounded-2xl bg-muted p-4 text-sm text-foreground" role="status" data-ausserhalb hidden>
+				Schade – Ihre Region decken meine Partner noch nicht ab. Ich melde mich trotzdem gern, falls
+				ich Ihnen jemanden empfehlen kann.
+			</div>
+			<div class="mt-8 flex items-center justify-between gap-4">
+				<button type="button" class={backButton} data-zurueck>
+					<Icon name="back" class="h-4 w-4" />
+					Zurück
+				</button>
+				<button type="button" class={primaryButton} data-weiter>Weiter</button>
+			</div>
+		</fieldset>
+
+		<fieldset data-schritt="kontakt" data-label="Letzter Schritt – Kontakt" class="mt-6" hidden>
+			<legend class={legendClass} tabindex="-1" data-schritt-titel>
+				Fast geschafft!{' '}
+				<span class="text-muted-foreground/60">Wie erreiche ich Sie?</span>
+			</legend>
+			<div class="mt-6 grid gap-4 sm:grid-cols-2">
+				<div class="sm:col-span-2">
+					<label for="name" class={labelClass}>Vor- und Nachname</label>
+					<input type="text" id="name" name="name" required autocomplete="name" class={fieldClass} />
+				</div>
+				<div>
+					<label for="telefon" class={labelClass}>Telefonnummer</label>
+					<input type="tel" id="telefon" name="telefon" required autocomplete="tel" class={fieldClass} />
+				</div>
+				<div>
+					<label for="email" class={labelClass}>E-Mail</label>
+					<input type="email" id="email" name="email" required autocomplete="email" class={fieldClass} />
+				</div>
+				<fieldset class="sm:col-span-2">
+					<legend class={labelClass}>Wann sind Sie am besten erreichbar?</legend>
+					<div class="mt-2 grid grid-cols-2 gap-3">
+						{
+							erreichbarkeitOptionen.map((option) => (
+								<label class:list={[optionClass, 'min-h-11 justify-center p-3']}>
+									<input type="radio" name="erreichbarkeit" value={option} required class="sr-only" />
+									<span class="text-sm font-medium">{option}</span>
+								</label>
+							))
+						}
+					</div>
+				</fieldset>
+				<div class="flex items-start gap-3 sm:col-span-2">
+					<input
+						type="checkbox"
+						id="datenschutz"
+						name="datenschutz"
+						required
+						class="mt-1 h-5 w-5 shrink-0 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					/>
+					<label for="datenschutz" class="text-sm text-muted-foreground">
+						Ich bin einverstanden, dass Martin Lemisch mich zu meiner Anfrage kontaktiert.{' '}
+						<a
+							href="/datenschutz/"
+							class="font-medium text-primary underline underline-offset-4 transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+						>
+							Datenschutzerklärung
+						</a>
+					</label>
+				</div>
+			</div>
+			<p class={fehlerClass} role="alert" data-fehler hidden>
+				Bitte füllen Sie alle Felder aus und bestätigen Sie die Einwilligung.
+			</p>
+			<div class="mt-8 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<button type="button" class:list={[backButton, 'self-start']} data-zurueck>
+					<Icon name="back" class="h-4 w-4" />
+					Zurück
+				</button>
+				<button type="submit" class:list={[primaryButton, 'w-full sm:w-auto']} data-absenden>
+					<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+					Jetzt unverbindlich anfragen
+				</button>
+			</div>
+			<p class="mt-4 flex items-start gap-2 text-xs text-muted-foreground sm:justify-end">
+				<Icon name="lock" class="h-4 w-4 shrink-0 text-primary" />
+				Ihre Daten gehen nur an mich – kein Callcenter, keine Weitergabe ohne Ihr Okay.
+			</p>
+			<p class="mt-4 text-sm font-medium" role="status" aria-live="polite" data-status hidden></p>
+		</fieldset>
+	</form>
+</div>
+
+<script>
+	const root = document.querySelector<HTMLElement>('[data-funnel]');
+	const form = root?.querySelector<HTMLFormElement>('[data-funnel-form]');
+
+	if (root && form) {
+		const plzImGebiet: string[] = JSON.parse(root.dataset.plz ?? '[]');
+		const schritte = new Map(
+			[...form.querySelectorAll<HTMLElement>('[data-schritt]')].map((el) => [el.dataset.schritt!, el]),
+		);
+		const fortschritt = root.querySelector<HTMLElement>('[data-fortschritt]')!;
+		const fortschrittText = root.querySelector<HTMLElement>('[data-fortschritt-text]')!;
+		const balken = [...root.querySelectorAll<HTMLElement>('[data-fortschritt-balken]')];
+		const ausserhalb = form.querySelector<HTMLElement>('[data-ausserhalb]')!;
+		const plzFeld = form.querySelector<HTMLInputElement>('[data-plz-feld]')!;
+		const status = form.querySelector<HTMLElement>('[data-status]')!;
+		const absenden = form.querySelector<HTMLButtonElement>('[data-absenden]')!;
+
+		let aktuell = 'start';
+		let perZeiger = false;
+		form.addEventListener('pointerdown', () => (perZeiger = true));
+
+		const wert = (name: string) =>
+			form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? '';
+
+		const reihenfolge = () => [
+			'start',
+			'vorhaben',
+			'wunsch',
+			wert('wunsch') === 'vergleich' ? 'sorge' : 'zeitpunkt',
+			'region',
+			'kontakt',
+		];
+
+		const plzPruefen = () => {
+			const plz = plzFeld.value.trim();
+			const gueltig = /^\d{5}$/.test(plz);
+			const imGebiet = gueltig && plzImGebiet.some((prefix) => plz.startsWith(prefix));
+			ausserhalb.hidden = !gueltig || imGebiet;
+			return { gueltig, imGebiet };
+		};
+
+		const zeigen = (name: string) => {
+			schritte.forEach((el, key) => (el.hidden = key !== name));
+			aktuell = name;
+			const el = schritte.get(name)!;
+			el.querySelectorAll<HTMLElement>('[data-fehler]').forEach((f) => (f.hidden = true));
+
+			const index = reihenfolge().indexOf(name);
+			fortschritt.hidden = name === 'start';
+			fortschrittText.textContent = el.dataset.label ?? '';
+			balken.forEach((b, i) => b.toggleAttribute('data-aktiv', i < index));
+
+			el.querySelector<HTMLElement>('[data-schritt-titel]')?.focus({ preventScroll: true });
+			const oben = root.getBoundingClientRect().top;
+			if (oben < 0) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		};
+
+		const gueltig = (name: string) => {
+			switch (name) {
+				case 'vorhaben':
+					return form.querySelector('input[name="vorhaben"]:checked') !== null;
+				case 'wunsch':
+				case 'zeitpunkt':
+				case 'sorge':
+					return wert(name) !== '';
+				case 'region':
+					return plzPruefen().gueltig;
+				case 'kontakt':
+					return [...schritte.get('kontakt')!.querySelectorAll<HTMLInputElement>('input')].every((i) =>
+						i.checkValidity(),
+					);
+				default:
+					return true;
+			}
+		};
+
+		const weiter = () => {
+			if (!gueltig(aktuell)) {
+				const fehler = schritte.get(aktuell)!.querySelector<HTMLElement>('[data-fehler]');
+				if (fehler) fehler.hidden = false;
+				return;
+			}
+			const folge = reihenfolge();
+			zeigen(folge[folge.indexOf(aktuell) + 1]);
+		};
+
+		const zurueck = () => {
+			const folge = reihenfolge();
+			zeigen(folge[Math.max(folge.indexOf(aktuell) - 1, 0)]);
+		};
+
+		form.addEventListener('click', (event) => {
+			const ziel = event.target as HTMLElement;
+			if (ziel.closest('[data-weiter]')) weiter();
+			if (ziel.closest('[data-zurueck]')) zurueck();
+		});
+
+		form.addEventListener('change', (event) => {
+			const ziel = event.target as HTMLInputElement;
+			const fehler = schritte.get(aktuell)?.querySelector<HTMLElement>('[data-fehler]');
+			if (fehler) fehler.hidden = true;
+			if (ziel.matches('[data-auto-weiter]') && perZeiger) {
+				window.setTimeout(() => {
+					if (ziel.checked && schritte.get(aktuell)?.contains(ziel)) weiter();
+				}, 250);
+			}
+		});
+
+		form.addEventListener('keydown', (event) => {
+			perZeiger = false;
+			const ziel = event.target as HTMLElement;
+			if (event.key === 'Enter' && ziel.matches('input:not([type="checkbox"])') && aktuell !== 'kontakt') {
+				event.preventDefault();
+				weiter();
+			}
+		});
+
+		plzFeld.addEventListener('input', () => {
+			plzFeld.value = plzFeld.value.replace(/\D/g, '').slice(0, 5);
+			plzPruefen();
+		});
+
+		const statusZeigen = (text: string, fehler: boolean) => {
+			status.hidden = false;
+			status.textContent = text;
+			status.classList.toggle('text-destructive', fehler);
+			status.classList.toggle('text-primary', !fehler);
+		};
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			if (!gueltig('kontakt')) {
+				schritte.get('kontakt')!.querySelector<HTMLElement>('[data-fehler]')!.hidden = false;
+				form.reportValidity();
+				return;
+			}
+
+			const daten = new FormData(form);
+			const name = String(daten.get('name') ?? '').trim();
+			const erreichbarkeit = String(daten.get('erreichbarkeit') ?? '');
+			const danke = () => {
+				sessionStorage.setItem(
+					'lsm-anfrage',
+					JSON.stringify({ vorname: name.split(/\s+/)[0], erreichbarkeit }),
+				);
+				window.location.assign('/danke/');
+			};
+
+			if (String(daten.get('website') ?? '').trim()) {
+				danke();
+				return;
+			}
+
+			const wunsch = form.querySelector<HTMLInputElement>('input[name="wunsch"]:checked');
+			const { imGebiet } = plzPruefen();
+			const payload = {
+				vorhaben: daten.getAll('vorhaben').map(String),
+				wunsch: wunsch?.dataset.label ?? '',
+				zeitpunkt: wunsch?.value === 'angebot' ? String(daten.get('zeitpunkt') ?? '') : '',
+				sorge: wunsch?.value === 'vergleich' ? String(daten.get('sorge') ?? '') : '',
+				plz: plzFeld.value.trim(),
+				imGebiet,
+				name,
+				telefon: String(daten.get('telefon') ?? '').trim(),
+				email: String(daten.get('email') ?? '').trim(),
+				erreichbarkeit,
+				datenschutz: daten.get('datenschutz') === 'on',
+				pageUrl: window.location.href,
+				timestamp: new Date().toISOString(),
+			};
+
+			const webhook = root.dataset.webhook;
+			if (!webhook) {
+				if (root.dataset.simulieren) {
+					console.info('Funnel (Entwicklung, nicht gesendet):', payload);
+					danke();
+					return;
+				}
+				statusZeigen(
+					'Die Anfrage kann gerade nicht gesendet werden. Bitte rufen Sie mich direkt an.',
+					true,
+				);
+				return;
+			}
+
+			absenden.disabled = true;
+			statusZeigen('Wird gesendet …', false);
+			try {
+				const antwort = await fetch(webhook, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+					body: JSON.stringify(payload),
+				});
+				if (!antwort.ok) throw new Error(`HTTP ${antwort.status}`);
+				danke();
+			} catch {
+				statusZeigen(
+					'Senden fehlgeschlagen. Bitte versuchen Sie es erneut oder rufen Sie mich an.',
+					true,
+				);
+				absenden.disabled = false;
+			}
+		});
+	}
+</script>

@@ -1,0 +1,115 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SeoSchema from '../components/SeoSchema.astro';
+import '../styles/global.css';
+import manrope600 from '../assets/fonts/manrope-600.woff2?url';
+import sourceSans400 from '../assets/fonts/source-sans-3-400.woff2?url';
+
+interface BreadcrumbItem {
+	name: string;
+	url: string;
+}
+
+interface Props {
+	title: string;
+	description: string;
+	canonical?: string;
+	noindex?: boolean;
+	breadcrumbs?: BreadcrumbItem[];
+	service?: {
+		name: string;
+		description: string;
+		url: string;
+	};
+	article?: {
+		headline: string;
+		description: string;
+		datePublished: string;
+		dateModified?: string;
+		image?: string;
+		url: string;
+	};
+	faq?: {
+		question: string;
+		answer: string;
+	}[];
+}
+
+const {
+	title,
+	description,
+	canonical,
+	noindex = false,
+	breadcrumbs,
+	service,
+	article,
+	faq,
+} = Astro.props;
+
+const canonicalURL = canonical
+	? new URL(canonical, Astro.site)
+	: new URL(Astro.url.pathname, Astro.site);
+
+const defaultBreadcrumbs: BreadcrumbItem[] = [
+	{ name: 'Start', url: new URL('/', Astro.site).href },
+];
+
+const schemaBreadcrumbs = breadcrumbs ?? defaultBreadcrumbs;
+
+const ogImage = article?.image ?? new URL('/og-default.png', Astro.site).href;
+---
+
+<!doctype html>
+<html lang="de">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL} />
+		{noindex && <meta name="robots" content="noindex, follow" />}
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="any" />
+		<link rel="apple-touch-icon" href="/badge.svg" />
+		<link rel="preload" href={manrope600} as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href={sourceSans400} as="font" type="font/woff2" crossorigin />
+
+		<meta property="og:type" content={article ? 'article' : 'website'} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:locale" content="de_DE" />
+		<meta property="og:site_name" content="Lemisch Sanierung & Modernisierung" />
+		<meta property="og:image" content={ogImage} />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+
+		<meta name="generator" content={Astro.generator} />
+		<slot name="head" />
+		<SeoSchema
+			breadcrumbs={schemaBreadcrumbs}
+			service={service}
+			article={article}
+			faq={faq}
+		/>
+	</head>
+	<body class="flex min-h-screen flex-col">
+		<a
+			href="#main"
+			class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+		>
+			Zum Inhalt springen
+		</a>
+		<Header />
+		<main id="main" class="flex-1">
+			<slot />
+		</main>
+		<Footer />
+		<script src="../scripts/contact-reveal.ts"></script>
+	</body>
+</html>

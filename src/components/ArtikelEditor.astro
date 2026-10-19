@@ -1,0 +1,545 @@
+---
+import type { Bild } from '../db/schema';
+
+interface Props {
+	initialMarkdown?: string;
+	bilder: Bild[];
+}
+
+const { initialMarkdown = '', bilder } = Astro.props;
+
+const bilderJson = bilder.map((b) => ({
+	id: b.id,
+	alt: b.alt,
+	r2Key: b.r2Key,
+	url: `/bilder/${b.r2Key}/`,
+	breite: b.breite,
+	hoehe: b.hoehe,
+}));
+---
+
+<div
+	class="space-y-3 sm:col-span-2"
+	data-artikel-editor
+	data-initial={initialMarkdown}
+	data-bilder={JSON.stringify(bilderJson)}
+>
+	<div class="flex flex-wrap items-center justify-between gap-3">
+		<p class="text-sm font-medium text-foreground">Inhalt</p>
+		<div
+			class="inline-flex rounded-md border border-border p-1"
+			role="group"
+			aria-label="Editor-Modus"
+		>
+			<button
+				type="button"
+				data-mode="bloecke"
+				class="inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				aria-pressed="true"
+			>
+				Blöcke
+			</button>
+			<button
+				type="button"
+				data-mode="markdown"
+				class="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				aria-pressed="false"
+			>
+				Markdown
+			</button>
+		</div>
+	</div>
+
+	<div data-panel-bloecke class="overflow-hidden rounded-md border border-border bg-background">
+		<div
+			class="flex flex-wrap gap-1 border-b border-border bg-muted/40 p-2"
+			data-toolbar
+			role="toolbar"
+			aria-label="Formatierung"
+		>
+			<button
+				type="button"
+				data-cmd="heading"
+				data-level="2"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Überschrift 2"
+			>
+				H2
+			</button>
+			<button
+				type="button"
+				data-cmd="heading"
+				data-level="3"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Überschrift 3"
+			>
+				H3
+			</button>
+			<button
+				type="button"
+				data-cmd="bold"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-bold text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Fett"
+			>
+				B
+			</button>
+			<button
+				type="button"
+				data-cmd="italic"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm italic text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Kursiv"
+			>
+				I
+			</button>
+			<button
+				type="button"
+				data-cmd="bulletList"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Liste"
+			>
+				• Liste
+			</button>
+			<button
+				type="button"
+				data-cmd="orderedList"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Nummerierte Liste"
+			>
+				1. Liste
+			</button>
+			<button
+				type="button"
+				data-cmd="link"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Link"
+			>
+				Link
+			</button>
+			<button
+				type="button"
+				data-cmd="info"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Infoblock"
+			>
+				Info
+			</button>
+			<button
+				type="button"
+				data-cmd="image"
+				class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:border-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[aktiv=true]:border-primary data-[aktiv=true]:bg-primary data-[aktiv=true]:text-primary-foreground"
+				title="Bild einfügen"
+			>
+				Bild
+			</button>
+		</div>
+		<div
+			data-tiptap
+			class="prose-artikel min-h-80 px-4 py-4 focus-within:outline-none [&_.tiptap]:min-h-72 [&_.tiptap]:outline-none [&_.tiptap_p.is-editor-empty:first-child]:before:pointer-events-none [&_.tiptap_p.is-editor-empty:first-child]:before:float-left [&_.tiptap_p.is-editor-empty:first-child]:before:h-0 [&_.tiptap_p.is-editor-empty:first-child]:before:text-muted-foreground [&_.tiptap_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)] [&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-action"
+		>
+		</div>
+	</div>
+
+	<textarea
+		name="inhaltMd"
+		rows="16"
+		data-panel-markdown
+		hidden
+		class="mt-0 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+	>{initialMarkdown}</textarea>
+
+	<p data-editor-hinweis class="text-sm text-muted-foreground" hidden></p>
+</div>
+
+<dialog
+	data-bild-dialog
+	class="fixed inset-0 z-40 m-auto max-h-[90vh] w-[min(40rem,calc(100%-2rem))] overflow-auto rounded-md border border-border bg-background p-0 text-foreground shadow-none open:flex open:flex-col"
+>
+	<div class="flex items-center justify-between border-b border-border px-4 py-3">
+		<h2 class="font-display text-lg font-semibold">Bild einfügen</h2>
+		<button
+			type="button"
+			data-bild-close
+			class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			aria-label="Schließen"
+		>
+			✕
+		</button>
+	</div>
+	<div class="space-y-4 p-4">
+		<div class="space-y-3 rounded-md border border-border p-4">
+			<p class="text-sm font-medium">Neues Bild hochladen</p>
+			<label class="block text-sm">
+				Datei
+				<input
+					type="file"
+					data-bild-file
+					accept="image/webp,image/png,image/jpeg,image/gif,image/avif"
+					class="mt-1 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-action file:px-4 file:py-2 file:font-display file:text-sm file:font-bold file:text-action-foreground"
+				/>
+			</label>
+			<label class="block text-sm">
+				Alt-Text
+				<input
+					type="text"
+					data-bild-alt
+					maxlength="200"
+					class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				/>
+			</label>
+			<button
+				type="button"
+				data-bild-upload
+				class="inline-flex min-h-11 items-center justify-center rounded-md bg-action px-4 py-2 font-display text-sm font-bold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			>
+				Hochladen und einfügen
+			</button>
+			<p data-bild-upload-status class="text-sm" aria-live="polite" hidden></p>
+		</div>
+		<p class="text-sm font-medium">Aus Bibliothek wählen</p>
+		<ul data-bild-liste class="grid max-h-80 gap-3 overflow-y-auto sm:grid-cols-2"></ul>
+	</div>
+</dialog>
+
+<script>
+	import { Editor, Extension, Node, mergeAttributes } from '@tiptap/core';
+	import StarterKit from '@tiptap/starter-kit';
+	import Image from '@tiptap/extension-image';
+	import Placeholder from '@tiptap/extension-placeholder';
+	import Link from '@tiptap/extension-link';
+	import { htmlToMarkdown, markdownToEditorHtml } from '../lib/editor-markdown';
+
+	type BildEintrag = {
+		id: string;
+		alt: string;
+		r2Key: string;
+		url: string;
+		breite: number | null;
+		hoehe: number | null;
+	};
+
+	const InfoBlock = Node.create({
+		name: 'infoBlock',
+		group: 'block',
+		content: 'block+',
+		defining: true,
+		parseHTML() {
+			return [{ tag: 'aside.callout-info' }];
+		},
+		renderHTML({ HTMLAttributes }) {
+			return [
+				'aside',
+				mergeAttributes(HTMLAttributes, {
+					class: 'callout-info',
+					role: 'note',
+				}),
+				0,
+			];
+		},
+	});
+
+	const DisableTab = Extension.create({
+		name: 'disableTab',
+		addKeyboardShortcuts() {
+			return {
+				Tab: () => true,
+			};
+		},
+	});
+
+	const root = document.querySelector<HTMLElement>('[data-artikel-editor]');
+	if (root) {
+		const textarea = root.querySelector<HTMLTextAreaElement>('[data-panel-markdown]');
+		const panelBloecke = root.querySelector<HTMLElement>('[data-panel-bloecke]');
+		const tipTapEl = root.querySelector<HTMLElement>('[data-tiptap]');
+		const hinweis = root.querySelector<HTMLElement>('[data-editor-hinweis]');
+		const modeButtons = root.querySelectorAll<HTMLButtonElement>('[data-mode]');
+		const toolbar = root.querySelector<HTMLElement>('[data-toolbar]');
+		const dialog = document.querySelector<HTMLDialogElement>('[data-bild-dialog]');
+		const liste = dialog?.querySelector<HTMLUListElement>('[data-bild-liste]');
+		const fileInput = dialog?.querySelector<HTMLInputElement>('[data-bild-file]');
+		const altInput = dialog?.querySelector<HTMLInputElement>('[data-bild-alt]');
+		const uploadBtn = dialog?.querySelector<HTMLButtonElement>('[data-bild-upload]');
+		const uploadStatus = dialog?.querySelector<HTMLElement>('[data-bild-upload-status]');
+		if (dialog) document.body.append(dialog);
+		dialog
+			?.querySelector<HTMLButtonElement>('[data-bild-close]')
+			?.addEventListener('click', () => dialog.close());
+
+		let bilder: BildEintrag[] = [];
+		try {
+			bilder = JSON.parse(root.dataset.bilder ?? '[]') as BildEintrag[];
+		} catch {
+			bilder = [];
+		}
+
+		let mode: 'bloecke' | 'markdown' = 'bloecke';
+		let editor: Editor | null = null;
+
+		function setHinweis(msg: string, error = false) {
+			if (!hinweis) return;
+			if (!msg) {
+				hinweis.hidden = true;
+				hinweis.textContent = '';
+				return;
+			}
+			hinweis.hidden = false;
+			hinweis.textContent = msg;
+			hinweis.className = error
+				? 'text-sm text-destructive'
+				: 'text-sm text-muted-foreground';
+		}
+
+		function syncTextareaFromEditor() {
+			if (!editor || !textarea) return;
+			textarea.value = htmlToMarkdown(editor.getHTML());
+		}
+
+		function updateToolbar() {
+			if (!editor || !toolbar) return;
+			toolbar.querySelectorAll<HTMLButtonElement>('[data-cmd]').forEach((btn) => {
+				const cmd = btn.dataset.cmd;
+				let aktiv = false;
+				if (cmd === 'heading') {
+					aktiv = editor!.isActive('heading', { level: Number(btn.dataset.level) });
+				} else if (cmd === 'bold') aktiv = editor!.isActive('bold');
+				else if (cmd === 'italic') aktiv = editor!.isActive('italic');
+				else if (cmd === 'bulletList') aktiv = editor!.isActive('bulletList');
+				else if (cmd === 'orderedList') aktiv = editor!.isActive('orderedList');
+				else if (cmd === 'link') aktiv = editor!.isActive('link');
+				else if (cmd === 'info') aktiv = editor!.isActive('infoBlock');
+				btn.dataset.aktiv = aktiv ? 'true' : 'false';
+			});
+		}
+
+		function renderBildListe() {
+			if (!liste) return;
+			liste.replaceChildren();
+			for (const b of bilder) {
+				const li = document.createElement('li');
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className =
+					'group flex w-full flex-col overflow-hidden rounded-md border border-border text-left transition-colors duration-150 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+				const img = document.createElement('img');
+				img.src = b.url;
+				img.alt = b.alt;
+				img.loading = 'lazy';
+				img.className = 'aspect-video w-full object-cover';
+				const cap = document.createElement('span');
+				cap.className = 'block truncate px-3 py-2 text-sm text-foreground';
+				cap.textContent = b.alt;
+				btn.append(img, cap);
+				btn.addEventListener('click', () => {
+					insertImage(b.url, b.alt);
+					dialog?.close();
+				});
+				li.append(btn);
+				liste.append(li);
+			}
+		}
+
+		function insertImage(src: string, alt: string) {
+			editor?.chain().focus().setImage({ src, alt }).run();
+			syncTextareaFromEditor();
+		}
+
+		async function loadEditorFromMarkdown(md: string) {
+			if (!editor) return;
+			const html = await markdownToEditorHtml(md || '');
+			editor.commands.setContent(html, { emitUpdate: false });
+		}
+
+		async function setMode(next: 'bloecke' | 'markdown') {
+			if (!textarea || !panelBloecke) return;
+			if (next === mode) return;
+
+			if (next === 'markdown') {
+				syncTextareaFromEditor();
+				panelBloecke.hidden = true;
+				textarea.hidden = false;
+				mode = 'markdown';
+				setHinweis('');
+			} else {
+				try {
+					await loadEditorFromMarkdown(textarea.value);
+					textarea.hidden = true;
+					panelBloecke.hidden = false;
+					mode = 'bloecke';
+					setHinweis('');
+				} catch {
+					setHinweis(
+						'Markdown konnte nicht gelesen werden. Bitte korrigieren oder im Markdown-Modus belassen.',
+						true,
+					);
+					return;
+				}
+			}
+
+			modeButtons.forEach((btn) => {
+				const aktiv = btn.dataset.mode === mode;
+				btn.setAttribute('aria-pressed', aktiv ? 'true' : 'false');
+				btn.className = aktiv
+					? 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+					: 'inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+			});
+		}
+
+		if (tipTapEl && textarea) {
+			editor = new Editor({
+				element: tipTapEl,
+				extensions: [
+					StarterKit.configure({
+						heading: { levels: [2, 3] },
+						codeBlock: false,
+						blockquote: false,
+					}),
+					Image.configure({
+						allowBase64: false,
+						HTMLAttributes: {
+							class: 'rounded-2xl',
+						},
+					}),
+					Link.configure({
+						openOnClick: false,
+						autolink: true,
+						HTMLAttributes: {
+							rel: 'noopener noreferrer',
+						},
+					}),
+					Placeholder.configure({
+						placeholder: 'Schreiben Sie hier – Überschriften, Text, Infos und Bilder …',
+					}),
+					InfoBlock,
+					DisableTab,
+				],
+				content: '<p></p>',
+				onUpdate: () => {
+					if (mode === 'bloecke') syncTextareaFromEditor();
+					updateToolbar();
+				},
+				onSelectionUpdate: () => updateToolbar(),
+			});
+
+			void loadEditorFromMarkdown(textarea.value || root.dataset.initial || '').then(() => {
+				syncTextareaFromEditor();
+				updateToolbar();
+			});
+
+			textarea.hidden = true;
+		}
+
+		modeButtons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				void setMode(btn.dataset.mode === 'markdown' ? 'markdown' : 'bloecke');
+			});
+		});
+
+		toolbar?.addEventListener('click', (e) => {
+			const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cmd]');
+			if (!btn || !editor) return;
+			const cmd = btn.dataset.cmd;
+			const chain = editor.chain().focus();
+			if (cmd === 'heading') {
+				chain.toggleHeading({ level: Number(btn.dataset.level) as 2 | 3 }).run();
+			} else if (cmd === 'bold') chain.toggleBold().run();
+			else if (cmd === 'italic') chain.toggleItalic().run();
+			else if (cmd === 'bulletList') chain.toggleBulletList().run();
+			else if (cmd === 'orderedList') chain.toggleOrderedList().run();
+			else if (cmd === 'link') {
+				const prev = editor.getAttributes('link').href as string | undefined;
+				const url = window.prompt('Link-URL', prev ?? 'https://');
+				if (url === null) return;
+				if (url === '') chain.extendMarkRange('link').unsetLink().run();
+				else chain.extendMarkRange('link').setLink({ href: url }).run();
+			} else if (cmd === 'info') {
+				if (editor.isActive('infoBlock')) {
+					chain.lift(editor.state.selection.$from.depth).run();
+				} else {
+					chain.wrapIn('infoBlock').run();
+				}
+			} else if (cmd === 'image') {
+				renderBildListe();
+				dialog?.showModal();
+			}
+			updateToolbar();
+		});
+
+		uploadBtn?.addEventListener('click', async () => {
+			if (!fileInput?.files?.[0] || !altInput) return;
+			const alt = altInput.value.trim();
+			if (!alt) {
+				if (uploadStatus) {
+					uploadStatus.hidden = false;
+					uploadStatus.textContent = 'Alt-Text ist erforderlich.';
+					uploadStatus.className = 'text-sm text-destructive';
+				}
+				return;
+			}
+			const fd = new FormData();
+			fd.set('file', fileInput.files[0]);
+			fd.set('alt', alt);
+			if (uploadStatus) {
+				uploadStatus.hidden = false;
+				uploadStatus.textContent = 'Wird hochgeladen …';
+				uploadStatus.className = 'text-sm text-muted-foreground';
+			}
+			const res = await fetch('/api/admin/bilder', { method: 'POST', body: fd });
+			const data = (await res.json().catch(() => ({}))) as {
+				error?: string;
+				id?: string;
+				r2Key?: string;
+				alt?: string;
+				url?: string;
+				breite?: number | null;
+				hoehe?: number | null;
+			};
+			if (!res.ok || !data.r2Key) {
+				if (uploadStatus) {
+					uploadStatus.textContent = data.error ?? 'Upload fehlgeschlagen';
+					uploadStatus.className = 'text-sm text-destructive';
+				}
+				return;
+			}
+			const eintrag: BildEintrag = {
+				id: data.id ?? data.r2Key,
+				alt: data.alt ?? alt,
+				r2Key: data.r2Key,
+				url: data.url?.endsWith('/') ? data.url : `${data.url ?? `/bilder/${data.r2Key}`}/`,
+				breite: data.breite ?? null,
+				hoehe: data.hoehe ?? null,
+			};
+			bilder = [eintrag, ...bilder];
+			insertImage(eintrag.url, eintrag.alt);
+			if (uploadStatus) {
+				uploadStatus.textContent = 'Eingefügt.';
+				uploadStatus.className = 'text-sm text-secondary';
+			}
+			fileInput.value = '';
+			altInput.value = '';
+			dialog?.close();
+
+			const titelbildSelect = document.querySelector<HTMLSelectElement>('select[name="titelbildId"]');
+			if (titelbildSelect && data.id) {
+				const opt = document.createElement('option');
+				opt.value = data.id;
+				opt.textContent = `${eintrag.alt} (${eintrag.r2Key})`;
+				titelbildSelect.append(opt);
+			}
+		});
+
+		const form = root.closest('form');
+		form?.addEventListener('submit', () => {
+			if (mode === 'bloecke') syncTextareaFromEditor();
+		});
+
+		// Speichern/Vorschau rufen payloadFromForm auf – vor dem Fetch syncen
+		document.addEventListener(
+			'click',
+			(e) => {
+				const t = (e.target as HTMLElement).closest('[data-action="save"], [data-action="preview"]');
+				if (t && mode === 'bloecke') syncTextareaFromEditor();
+			},
+			true,
+		);
+	}
+</script>

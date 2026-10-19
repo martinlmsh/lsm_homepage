@@ -1,0 +1,119 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnfrageSection from '../components/AnfrageSection.astro';
+import ArtikelZuLeistung from '../components/ArtikelZuLeistung.astro';
+import ContactLink from '../components/ContactLink.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import { siteData } from '../data/site';
+
+export async function getStaticPaths() {
+	const reserved = new Set([
+		'impressum',
+		'datenschutz',
+		'404',
+		'wissenswertes',
+		'bilder',
+		'admin',
+		'api',
+		'waermepumpe',
+		'photovoltaik',
+		'terrassenueberdachung',
+		'ueber-uns',
+	]);
+	const leistungen = await getCollection('leistungen');
+	return leistungen
+		.filter((entry) => !reserved.has(entry.id))
+		.map((entry) => ({
+			params: { slug: entry.id },
+			props: { entry },
+		}));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const pageUrl = `${siteUrl}/${entry.id}/`;
+
+const focusDark =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+---
+
+<BaseLayout
+	title={entry.data.metaTitle}
+	description={entry.data.metaDescription}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: entry.data.title, url: pageUrl },
+	]}
+	service={{
+		name: entry.data.title,
+		description: entry.data.kurzbeschreibung,
+		url: pageUrl,
+	}}
+>
+	<article>
+		<PageHero eyebrow={entry.data.title} title={entry.data.h1} intro={entry.data.kurzbeschreibung}>
+			<div class="mt-8 flex flex-wrap items-center gap-3">
+				<a
+					href="#anfrage"
+					class:list={[
+						'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80',
+						focusDark,
+					]}
+				>
+					<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+					Vor-Ort-Termin anfragen
+				</a>
+				<p class="inline-flex items-center gap-2 text-sm text-primary-foreground/60">
+					<Icon name="pin" class="h-4 w-4 text-action" />
+					{siteData.areas.join(' · ')}
+				</p>
+			</div>
+		</PageHero>
+
+		<div class="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12">
+			<div class="prose-lsm lg:col-span-8">
+				<Content />
+			</div>
+
+			<aside class="lg:col-span-4" aria-label="Kontakt">
+				<div class="rounded-3xl bg-muted p-6 lg:sticky lg:top-32">
+					<p class="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+						Ihr nächster Schritt
+					</p>
+					<p class="mt-4 font-display text-xl font-semibold leading-snug text-foreground">
+						Vor-Ort-Termin vereinbaren
+					</p>
+					<p class="mt-2 text-sm text-muted-foreground">
+						Wir klären vorab, welche Unterlagen hilfreich sind, und gehen den Ablauf mit Ihnen
+						durch.
+					</p>
+					<ContactLink
+						type="phone"
+						class="mt-6 flex min-h-11 items-center justify-between gap-4 rounded-2xl bg-background px-4 py-3 transition-colors duration-150 hover:bg-background/70 active:bg-background/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					>
+						<span class="flex items-center gap-3">
+							<Icon name="phone" class="h-4 w-4 text-action" />
+							<span class="font-display text-base font-semibold text-foreground" data-contact-label>
+								Telefon
+							</span>
+						</span>
+						<Icon name="arrow" class="h-4 w-4 text-muted-foreground" />
+					</ContactLink>
+					<a
+						href="#anfrage"
+						class="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4 transition-colors duration-150 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					>
+						Oder Formular ausfüllen
+					</a>
+				</div>
+			</aside>
+		</div>
+
+		<ArtikelZuLeistung server:defer leistung={entry.id} />
+
+		<AnfrageSection selectedLeistung={entry.id} />
+	</article>
+</BaseLayout>

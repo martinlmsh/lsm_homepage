@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+@font-face {
+	font-family: "Manrope";
+	src: url("../assets/fonts/manrope-600.woff2") format("woff2");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Manrope";
+	src: url("../assets/fonts/manrope-700.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Manrope";
+	src: url("../assets/fonts/manrope-800.woff2") format("woff2");
+	font-weight: 800;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Source Sans 3";
+	src: url("../assets/fonts/source-sans-3-400.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Source Sans 3";
+	src: url("../assets/fonts/source-sans-3-600.woff2") format("woff2");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@theme {
+	/* CI Lemisch 1.0 */
+	--color-background: #ffffff;
+	--color-foreground: #22282e;
+	--color-primary: #1f3a5f;
+	--color-primary-foreground: #ffffff;
+	--color-action: #d9822b;
+	--color-action-foreground: #22282e;
+	--color-secondary: #6b8f71;
+	--color-secondary-foreground: #ffffff;
+	--color-accent: #6b8f71;
+	--color-accent-foreground: #ffffff;
+	--color-muted: #e9e2d6;
+	--color-muted-foreground: #4a5058;
+	--color-border: #d4cdc2;
+	--color-ring: #1f3a5f;
+	--color-destructive: #9b1c1c;
+	--color-destructive-foreground: #ffffff;
+	--color-info: #e9e2d6;
+	--color-info-foreground: #22282e;
+	--font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+	--font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+		scroll-padding-top: 7rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			transition-duration: 0.01ms !important;
+		}
+	}
+
+	body {
+		@apply bg-background text-foreground font-sans text-[17px] antialiased leading-relaxed;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		@apply font-display font-semibold tracking-tight text-primary;
+	}
+
+	a {
+		@apply transition-colors duration-150;
+	}
+
+	.caret {
+		display: inline-block;
+		width: 0.08em;
+		height: 0.85em;
+		vertical-align: -0.08em;
+		border-radius: 1px;
+		animation: caret-blink 1s steps(1) infinite;
+	}
+
+	@keyframes caret-blink {
+		50% {
+			opacity: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.caret {
+			animation: none;
+		}
+	}
+
+	.notiz {
+		transform: rotate(var(--notiz-drehung, 0deg));
+	}
+
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.notiz {
+				animation: notiz-kleben linear both;
+				animation-timeline: view();
+				animation-range: entry 10% entry 90%;
+			}
+		}
+	}
+
+	@keyframes notiz-kleben {
+		from {
+			opacity: 0.4;
+			transform: translateY(4rem) rotate(calc(var(--notiz-drehung, 0deg) * -3)) scale(1.06);
+		}
+		to {
+			opacity: 1;
+			transform: rotate(var(--notiz-drehung, 0deg)) scale(1);
+		}
+	}
+
+	:focus-visible {
+		@apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+	}
+
+	.callout-info {
+		@apply my-8 rounded-r-xl border-l-4 border-l-action bg-info px-6 py-4 text-info-foreground;
+	}
+
+	.callout-info :where(p) {
+		@apply mt-2 text-[16px] leading-relaxed first:mt-0;
+	}
+
+	:is(.prose-artikel, .prose-lsm) {
+		@apply text-[17px] leading-[1.65] text-muted-foreground;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(h2) {
+		@apply mt-14 font-display text-[clamp(1.5rem,2.5vw,2rem)] font-semibold leading-tight tracking-tight text-foreground first:mt-0;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(h3) {
+		@apply mt-8 font-display text-xl font-semibold text-foreground;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(p) {
+		@apply mt-5 text-pretty;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(ul) {
+		@apply mt-5 list-disc pl-6 marker:text-action;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(ol) {
+		@apply mt-5 list-decimal pl-6 marker:text-action;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(li) {
+		@apply mt-2;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(strong) {
+		@apply font-semibold text-foreground;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(a) {
+		@apply font-medium text-primary underline underline-offset-4 hover:text-primary/80;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(img) {
+		@apply my-10 h-auto w-full max-w-full rounded-2xl;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(p:has(> img:only-child)) {
+		@apply my-10;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(p > img:only-child) {
+		@apply my-0;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(figure) {
+		@apply my-10;
+	}
+
+	:is(.prose-artikel, .prose-lsm) :where(figcaption) {
+		@apply mt-3 text-sm text-muted-foreground;
+	}
+}

@@ -1,0 +1,47 @@
+{
+  "name": "lsm---homepage",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply lsm-db --local",
+    "db:seed": "node scripts/seed.mjs",
+    "pages:dev": "npm run build && wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.4.0",
+    "@astrojs/sitemap": "^3.7.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tiptap/core": "^3.32.0",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-link": "^3.32.0",
+    "@tiptap/extension-placeholder": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
+    "astro": "^7.4.0",
+    "drizzle-orm": "^0.45.4",
+    "jose": "^6.2.12",
+    "marked": "^18.1.1",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-directive": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "tailwindcss": "^4.3.3",
+    "turndown": "^7.2.4",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/turndown": "^5.0.6",
+    "drizzle-kit": "^0.31.11",
+    "wrangler": "^4.151.1"
+  }
+}

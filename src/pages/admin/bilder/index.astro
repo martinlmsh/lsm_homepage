@@ -1,0 +1,99 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createDb } from '../../../db/client';
+import { env } from 'cloudflare:workers';
+import { gateAdmin } from '../../../lib/admin-page';
+import { listBilder } from '../../../lib/bilder-admin';
+
+const gated = await gateAdmin(Astro);
+if (gated instanceof Response) return gated;
+
+const db = createDb(env.DB);
+const rows = await listBilder(db, 100);
+---
+
+<AdminLayout title="Bilder | Admin">
+	<h1 class="font-display text-3xl font-bold text-primary">Bilder</h1>
+	<p class="mt-2 text-sm text-muted-foreground">
+		Upload nach R2. Öffentliche URL: <code class="text-foreground">/bilder/&lt;key&gt;</code>
+	</p>
+
+	<form
+		id="upload-form"
+		class="mt-8 space-y-4 rounded-md border border-border bg-background p-6"
+		enctype="multipart/form-data"
+	>
+		<label class="block text-sm font-medium">
+			Datei
+			<input
+				type="file"
+				name="file"
+				accept="image/webp,image/png,image/jpeg,image/gif,image/avif"
+				required
+				class="mt-1 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-action file:px-4 file:py-2 file:font-display file:text-sm file:font-bold file:text-action-foreground"
+			/>
+		</label>
+		<label class="block text-sm font-medium">
+			Alt-Text
+			<input
+				type="text"
+				name="alt"
+				required
+				maxlength="200"
+				class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			/>
+		</label>
+		<button
+			type="submit"
+			class="inline-flex min-h-11 items-center justify-center rounded-md bg-action px-4 py-2 font-display text-sm font-bold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		>
+			Hochladen
+		</button>
+		<p id="upload-status" class="text-sm" aria-live="polite" hidden></p>
+	</form>
+
+	<ul class="mt-8 grid gap-4 sm:grid-cols-2">
+		{
+			rows.map((b) => (
+				<li class="rounded-md border border-border bg-background p-4">
+					<img
+						src={`/bilder/${b.r2Key}`}
+						alt={b.alt}
+						class="mb-3 aspect-video w-full object-cover"
+						loading="lazy"
+						decoding="async"
+					/>
+					<p class="text-sm font-medium">{b.alt}</p>
+					<p class="mt-1 break-all font-mono text-xs text-muted-foreground">{b.id}</p>
+					<p class="mt-1 break-all font-mono text-xs text-muted-foreground">
+						/bilder/{b.r2Key}
+					</p>
+				</li>
+			))
+		}
+	</ul>
+
+	<script>
+		const form = document.getElementById('upload-form') as HTMLFormElement | null;
+		const statusEl = document.getElementById('upload-status');
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const fd = new FormData(form);
+			const res = await fetch('/api/admin/bilder', { method: 'POST', body: fd });
+			const data = (await res.json().catch(() => ({}))) as { error?: string };
+			if (statusEl) {
+				statusEl.hidden = false;
+				if (!res.ok) {
+					statusEl.className = 'text-sm text-destructive';
+					statusEl.textContent = data.error ?? 'Upload fehlgeschlagen';
+					return;
+				}
+				statusEl.className = 'text-sm text-secondary';
+				statusEl.textContent = 'Hochgeladen.';
+				window.location.reload();
+			}
+		});
+	</script>
+</AdminLayout>

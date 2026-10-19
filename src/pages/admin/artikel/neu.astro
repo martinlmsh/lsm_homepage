@@ -1,0 +1,26 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ArtikelForm from '../../../components/ArtikelForm.astro';
+import { createDb } from '../../../db/client';
+import { env } from 'cloudflare:workers';
+import { gateAdmin } from '../../../lib/admin-page';
+import { listBilder } from '../../../lib/bilder-admin';
+
+const gated = await gateAdmin(Astro);
+if (gated instanceof Response) return gated;
+
+const db = createDb(env.DB);
+const bilder = await listBilder(db, 100);
+---
+
+<AdminLayout title="Neuer Artikel | Admin">
+	<h1 class="font-display text-3xl font-bold text-primary">Neuer Artikel</h1>
+	<p class="mt-2 text-sm text-muted-foreground">
+		Wird als Entwurf gespeichert. Veröffentlichen Sie anschließend über „Bearbeiten“.
+	</p>
+	<div class="mt-8 rounded-md border border-border bg-background p-6">
+		<ArtikelForm bilder={bilder} />
+	</div>
+</AdminLayout>

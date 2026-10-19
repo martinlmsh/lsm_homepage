@@ -1,0 +1,195 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { siteData } from '../data/site';
+import ContactLink from './ContactLink.astro';
+import Icon from './Icon.astro';
+
+const leistungen = (await getCollection('leistungen')).sort(
+	(a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+
+const pathname = Astro.url.pathname;
+
+const leistungLinks = leistungen.map((leistung) => ({
+	href: `/${leistung.id}/`,
+	label: leistung.data.kurztitel,
+	title: leistung.data.title,
+	active: pathname === `/${leistung.id}/`,
+}));
+const leistungActive = leistungLinks.some((link) => link.active);
+const homeActive = pathname === '/';
+const ueberUnsActive = pathname === '/ueber-uns/' || pathname === '/ueber-uns';
+const wissenActive = pathname.startsWith('/wissenswertes/');
+
+const focusRing =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+const navLink = (active: boolean) => [
+	'inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium transition-colors duration-150 hover:text-primary-foreground',
+	active ? 'text-primary-foreground' : 'text-primary-foreground/65',
+	focusRing,
+];
+const mobileLink = (active: boolean) => [
+	'flex min-h-11 items-center justify-between rounded-xl px-4 text-base font-medium transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+	active ? 'text-primary-foreground' : 'text-primary-foreground/75',
+	focusRing,
+];
+---
+
+<header class="fixed inset-x-0 top-0 z-20 px-3 pt-3 sm:px-4 sm:pt-4">
+	<div
+		class="mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-full border border-primary-foreground/10 bg-primary/85 py-2 pl-4 pr-2 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-md sm:pl-6"
+	>
+		<a href="/" class:list={['inline-flex min-h-11 shrink-0 items-center rounded-full', focusRing]}>
+			<Image
+				src={siteData.logoNegativ}
+				alt={siteData.name}
+				class="h-8 w-auto sm:h-9"
+				loading="eager"
+			/>
+		</a>
+
+		<nav class="hidden items-center gap-1 md:flex" aria-label="Hauptnavigation">
+			<a href="/" aria-current={homeActive ? 'page' : undefined} class:list={navLink(homeActive)}>
+				{homeActive && <span class="h-1 w-1 rounded-full bg-action" aria-hidden="true" />}
+				Start
+			</a>
+
+			<div class="group relative">
+				<a href="/#leistungen" class:list={navLink(leistungActive)}>
+					{leistungActive && <span class="h-1 w-1 rounded-full bg-action" aria-hidden="true" />}
+					Leistungen
+					<svg
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.5"
+						class="h-4 w-4 motion-safe:transition-transform motion-safe:duration-200 group-hover:rotate-180 group-focus-within:rotate-180"
+						aria-hidden="true"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+					</svg>
+				</a>
+				<div
+					class="invisible absolute left-1/2 top-full z-10 w-80 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-200 ease-out group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+				>
+					<ul
+						class="rounded-2xl border border-primary-foreground/10 bg-primary p-2 shadow-xl shadow-primary/30"
+					>
+						{
+							leistungLinks.map((link) => (
+								<li>
+									<a
+										href={link.href}
+										aria-current={link.active ? 'page' : undefined}
+										class:list={[
+											'group/item flex min-h-11 items-center justify-between gap-4 rounded-xl px-4 py-3 transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+											focusRing,
+										]}
+									>
+										<span>
+											<span class="block text-sm font-semibold text-primary-foreground">
+												{link.label}
+											</span>
+											<span class="block text-xs text-primary-foreground/60">{link.title}</span>
+										</span>
+										<Icon
+											name="arrow"
+											class:list={[
+												'h-4 w-4 shrink-0 transition-colors duration-150 group-hover/item:text-action',
+												link.active ? 'text-action' : 'text-primary-foreground/40',
+											]}
+										/>
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</div>
+			</div>
+
+			<a
+				href="/ueber-uns/"
+				aria-current={ueberUnsActive ? 'page' : undefined}
+				class:list={navLink(ueberUnsActive)}
+			>
+				{ueberUnsActive && <span class="h-1 w-1 rounded-full bg-action" aria-hidden="true" />}
+				Über uns
+			</a>
+
+			<a
+				href="/wissenswertes/"
+				aria-current={wissenActive ? 'page' : undefined}
+				class:list={navLink(wissenActive)}
+			>
+				{wissenActive && <span class="h-1 w-1 rounded-full bg-action" aria-hidden="true" />}
+				Wissenswertes
+			</a>
+		</nav>
+
+		<div class="flex items-center gap-2">
+			<ContactLink
+				type="phone"
+				class:list={[
+					'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-background px-4 text-sm font-semibold text-foreground transition-colors duration-150 hover:bg-muted active:bg-muted/80',
+					focusRing,
+				]}
+			>
+				<span class="h-2 w-2 rounded-sm bg-action" aria-hidden="true" data-contact-keep></span>
+				<span class="sm:hidden" data-contact-keep>Anrufen</span>
+				<span class="hidden font-display sm:inline" data-contact-inject></span>
+			</ContactLink>
+
+			<details class="relative md:hidden">
+				<summary
+					class:list={[
+						'inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-full border border-primary-foreground/15 text-primary-foreground transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15 [&::-webkit-details-marker]:hidden',
+						focusRing,
+					]}
+					aria-label="Menü öffnen"
+				>
+					<Icon name="menu" class="h-5 w-5" />
+				</summary>
+				<nav
+					class="absolute right-0 z-30 mt-3 max-h-[80dvh] w-72 overflow-y-auto rounded-2xl border border-primary-foreground/10 bg-primary p-2 shadow-xl shadow-primary/30"
+					aria-label="Mobilnavigation"
+				>
+					<a href="/" aria-current={homeActive ? 'page' : undefined} class:list={mobileLink(homeActive)}>
+						Start
+					</a>
+					<p class="px-4 pb-1 pt-4 text-xs font-medium uppercase tracking-widest text-primary-foreground/45">
+						Leistungen
+					</p>
+					{
+						leistungLinks.map((link) => (
+							<a
+								href={link.href}
+								aria-current={link.active ? 'page' : undefined}
+								class:list={mobileLink(link.active)}
+							>
+								{link.label}
+								{link.active && <span class="h-1 w-1 rounded-full bg-action" aria-hidden="true" />}
+							</a>
+						))
+					}
+					<div class="my-2 border-t border-primary-foreground/10"></div>
+					<a
+						href="/ueber-uns/"
+						aria-current={ueberUnsActive ? 'page' : undefined}
+						class:list={mobileLink(ueberUnsActive)}
+					>
+						Über uns
+						{ueberUnsActive && <span class="h-1 w-1 rounded-full bg-action" aria-hidden="true" />}
+					</a>
+					<a
+						href="/wissenswertes/"
+						aria-current={wissenActive ? 'page' : undefined}
+						class:list={mobileLink(wissenActive)}
+					>
+						Wissenswertes
+					</a>
+				</nav>
+			</details>
+		</div>
+	</div>
+</header>

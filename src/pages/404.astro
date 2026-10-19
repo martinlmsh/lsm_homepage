@@ -1,0 +1,145 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
+import ContactLink from '../components/ContactLink.astro';
+import Icon from '../components/Icon.astro';
+import { siteData } from '../data/site';
+
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const title = 'Seite nicht gefunden | Lemisch';
+const description =
+	'Die angeforderte Seite wurde nicht gefunden. Zurück zur Startseite, zu den Leistungen oder direkt anrufen.';
+
+const leistungen = (await getCollection('leistungen')).sort(
+	(a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+
+const ziele = [
+	...leistungen.map((leistung) => ({
+		href: `/${leistung.id}/`,
+		label: leistung.data.kurztitel,
+		text: leistung.data.title,
+	})),
+	{ href: '/wissenswertes/', label: 'Wissenswertes', text: 'Artikel und Projektberichte' },
+];
+
+const focusDark =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+	noindex={true}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: 'Nicht gefunden', url: `${siteUrl}/404/` },
+	]}
+>
+	<section
+		class="relative isolate flex min-h-[100dvh] items-center overflow-hidden bg-primary text-primary-foreground"
+		aria-labelledby="notfound-heading"
+	>
+		<div
+			class="pointer-events-none absolute -bottom-32 -left-32 -z-10 h-96 w-96 rounded-full bg-action/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<div
+			class="pointer-events-none absolute -right-32 -top-32 -z-10 h-96 w-96 rounded-full bg-secondary/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+
+		<div class="mx-auto grid w-full max-w-6xl gap-12 px-4 pb-16 pt-32 sm:px-6 sm:pt-40 lg:grid-cols-12 lg:items-center">
+			<div class="lg:col-span-7">
+				<p
+					class="flex items-center font-display text-8xl font-semibold leading-none tracking-tight text-primary-foreground sm:text-9xl"
+					aria-hidden="true"
+				>
+					4<BrandMark class="mx-1 h-[0.9em] w-[0.9em] text-action" />4
+				</p>
+
+				<p
+					class="mt-8 inline-flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-3 py-1 text-xs font-medium text-primary-foreground/80"
+				>
+					<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+					Fehler 404
+				</p>
+				<h1
+					id="notfound-heading"
+					class="mt-6 max-w-xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-5xl"
+				>
+					Diese Seite gibt es nicht.{' '}
+					<span class="text-primary-foreground/45">Ihr Vorhaben schon.</span>
+				</h1>
+				<p class="mt-6 max-w-lg text-pretty text-lg text-primary-foreground/70">
+					Vielleicht hat sich die Adresse geändert oder ein Tippfehler hat sich
+					eingeschlichen. Alle Leistungen finden Sie hier auf einen Blick – oder Sie rufen einfach an.
+				</p>
+
+				<div class="mt-8 flex flex-wrap gap-3">
+					<a
+						href="/"
+						class:list={[
+							'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80',
+							focusDark,
+						]}
+					>
+						<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+						Zur Startseite
+					</a>
+					<ContactLink
+						type="phone"
+						class:list={[
+							'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-3 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+							focusDark,
+						]}
+					>
+						<Icon name="phone" class="h-4 w-4 text-action" />
+						<span data-contact-label>Telefon</span>
+					</ContactLink>
+				</div>
+			</div>
+
+			<nav
+				class="rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5 p-2 backdrop-blur-md lg:col-span-5"
+				aria-labelledby="notfound-links"
+			>
+				<p
+					id="notfound-links"
+					class="px-4 pb-2 pt-4 text-xs font-medium uppercase tracking-widest text-primary-foreground/50"
+				>
+					Vielleicht suchen Sie
+				</p>
+				<ul>
+					{
+						ziele.map((ziel) => (
+							<li>
+								<a
+									href={ziel.href}
+									class:list={[
+										'group flex min-h-11 items-center justify-between gap-4 rounded-2xl px-4 py-3 transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+										focusDark,
+									]}
+								>
+									<span>
+										<span class="block font-display text-base font-semibold text-primary-foreground">
+											{ziel.label}
+										</span>
+										<span class="block text-sm text-primary-foreground/60">{ziel.text}</span>
+									</span>
+									<Icon
+										name="arrow"
+										class="h-4 w-4 shrink-0 text-primary-foreground/40 transition-colors duration-150 group-hover:text-action"
+									/>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+		</div>
+	</section>
+</BaseLayout>

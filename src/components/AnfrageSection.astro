@@ -1,0 +1,71 @@
+---
+import LeadForm from './LeadForm.astro';
+import ContactLink from './ContactLink.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+	selectedLeistung?: string;
+}
+
+const { selectedLeistung } = Astro.props;
+
+const schritte = [
+	'Sie schildern kurz Ihr Vorhaben – per Formular oder Telefon.',
+	'Wir melden uns und klären, welche Unterlagen hilfreich sind.',
+	'Wir vereinbaren einen Vor-Ort-Termin bei Ihnen.',
+];
+---
+
+<section
+	id="anfrage"
+	class="relative isolate overflow-hidden bg-primary text-primary-foreground"
+	aria-labelledby="anfrage-heading"
+>
+	<div
+		class="pointer-events-none absolute -right-24 top-24 -z-10 h-96 w-96 rounded-full bg-action/10 blur-3xl"
+		aria-hidden="true"
+	>
+	</div>
+
+	<div class="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12 lg:gap-16">
+		<div class="lg:col-span-5">
+			<p class="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/70">
+				<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+				Anfrage
+			</p>
+			<h2
+				id="anfrage-heading"
+				class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-4xl"
+			>
+				Erzählen Sie uns von Ihrem Haus.{' '}
+				<span class="text-primary-foreground/45">Den Rest planen wir gemeinsam.</span>
+			</h2>
+
+			<ol class="mt-8 space-y-4">
+				{
+					schritte.map((schritt, index) => (
+						<li class="flex gap-4 border-t border-primary-foreground/10 pt-4">
+							<span class="font-mono text-sm text-action">0{index + 1}</span>
+							<span class="text-primary-foreground/75">{schritt}</span>
+						</li>
+					))
+				}
+			</ol>
+
+			<div class="mt-8 rounded-2xl border border-primary-foreground/10 bg-primary-foreground/5 p-6">
+				<p class="text-sm text-primary-foreground/60">Lieber direkt sprechen?</p>
+				<ContactLink
+					type="phone"
+					class="mt-2 inline-flex min-h-11 items-center gap-3 font-display text-2xl font-semibold text-primary-foreground transition-colors duration-150 hover:text-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+				>
+					<Icon name="phone" class="h-5 w-5 text-action" />
+					<span data-contact-label>Telefon</span>
+				</ContactLink>
+			</div>
+		</div>
+
+		<div class="lg:col-span-7">
+			<LeadForm selectedLeistung={selectedLeistung} />
+		</div>
+	</div>
+</section>

@@ -1,0 +1,15 @@
+---
+description: Projektkonventionen für Lemisch Sanierung & Modernisierung (Astro-Homepage)
+alwaysApply: true
+---
+
+# LSM Homepage
+
+- Astro + TypeScript + Tailwind, Cloudflare Pages/Workers (prerendered Seiten + SSR für Wissenswertes/Bilder)
+- Leistungen liegen in `src/content/leistungen/*.md`, Route `src/pages/[slug].astro`
+- Artikel in Cloudflare D1, Bilder in R2; öffentliche Routen unter `/wissenswertes/` und `/bilder/`
+- Jede Seite nutzt BaseLayout und SeoSchema; genau eine H1; title ≤ 60, description ≤ 155 Zeichen
+- Farben nur über Tailwind-Tokens (primary, accent), keine Hex-Werte in Komponenten
+- Keine externen Ressourcen (Fonts, CDNs, Embeds) ohne Rückfrage
+- Keine Straßenadresse, nie „Energieberatung/Energieberater“
+- Texte: Deutsch, Sie-Form, regionaler Bezug, keine Superlative ohne Beleg

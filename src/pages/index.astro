@@ -1,0 +1,808 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnfrageSection from '../components/AnfrageSection.astro';
+import BrandMark from '../components/BrandMark.astro';
+import ContactLink from '../components/ContactLink.astro';
+import EinzugsgebietKarte from '../components/EinzugsgebietKarte.astro';
+import Icon from '../components/Icon.astro';
+import { einzugsgebiet } from '../data/einzugsgebiet';
+import { siteData } from '../data/site';
+
+const leistungen = (await getCollection('leistungen')).sort(
+	(a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+
+const title = 'Sanierung & Modernisierung Tuttlingen | Lemisch';
+const description =
+	'Begleitung bei Sanierung und Modernisierung in Tuttlingen, Trossingen, VS, Rottweil und Balingen. Wärmepumpe und weitere Leistungen.';
+
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+
+const heroPhrasen = [
+	'Ihrer Photovoltaikanlage',
+	'Ihrer Wärmepumpe',
+	'Ihrem Innenausbau',
+	'Ihrer Terrassenüberdachung',
+	'dem passenden Angebot',
+];
+const typewriterText = `${heroPhrasen.slice(0, -1).join(', ')} und ${heroPhrasen.at(-1)}.`;
+
+const chips = [
+	{ icon: 'user', label: 'Ein Ansprechpartner' },
+	{ icon: 'team', label: 'Geprüfte Partnerbetriebe' },
+	{ icon: 'document', label: 'Angebote neutral eingeordnet' },
+] as const;
+
+const kennzahlen = [
+	{ zahl: '267', label: 'PV-Anlagen geplant', detail: 'seit 2023' },
+	{ zahl: '143', label: 'Wärmepumpen geplant und realisiert', detail: 'seit 2024' },
+	{ zahl: '10', label: 'Partnerfirmen im Netzwerk', detail: 'in allen Gewerken' },
+	{ praefix: 'über', zahl: '8', label: 'Jahre Erfahrung', detail: 'in der Branche' },
+];
+
+const vorteile = [
+	{
+		icon: 'user',
+		titel: 'Eine Nummer statt fünf',
+		text: 'Sie haben eine Ansprechperson für alle Fragen. Wir halten Termine und Absprachen mit den Betrieben zusammen.',
+	},
+	{
+		icon: 'team',
+		titel: 'Gewerke greifen ineinander',
+		text: 'Wärmepumpe, Photovoltaik und Innenausbau planen wir aufeinander abgestimmt – damit Arbeiten aufeinander aufbauen statt sich zu behindern.',
+	},
+	{
+		icon: 'document',
+		titel: 'Entscheiden mit Überblick',
+		text: 'Varianten verständlich erklärt, Angebote neutral eingeordnet. Die Entscheidung bleibt bei Ihnen – auf klarer Grundlage.',
+	},
+	{
+		icon: 'pin',
+		titel: 'Kurze Wege in der Region',
+		text: 'Partnerbetriebe aus dem Handwerk zwischen Tuttlingen und Balingen. Das erleichtert Termine und die Abstimmung vor Ort.',
+	},
+] as const;
+
+const vergleichSpalten = {
+	selbst: 'Selbst organisieren',
+	portal: 'Vergleichsportal',
+	wir: 'Durch uns begleitet',
+};
+
+const vergleich = [
+	{
+		thema: 'Preis',
+		selbst: 'Ist das fair – oder zahle ich drauf?',
+		portal: 'Lockpreis vorne, Nachträge hinten.',
+		wir: 'Ich vergleiche die Preise – Sie bekommen den fairen.',
+	},
+	{
+		thema: 'Angebote',
+		selbst: 'Drei Angebote, null Durchblick.',
+		portal: 'Fünf Angebote. Keiner erklärt sie.',
+		wir: 'Ich vergleiche geprüfte Betriebe. Sie entscheiden mit Durchblick.',
+	},
+	{
+		thema: 'Regional',
+		selbst: 'Der gute Betrieb um die Ecke? Ausgebucht.',
+		portal: 'Kommt von weit her – und ist danach weg.',
+		wir: 'Partner aus der Region. Auch nach der Montage.',
+	},
+	{
+		thema: 'Koordination',
+		selbst: 'Sie spielen Bauleiter – neben Job und Familie.',
+		portal: 'Jedes Gewerk einzeln suchen.',
+		wir: 'Ich stimme alle Gewerke ab.',
+	},
+	{
+		thema: 'Versteckte Kosten',
+		selbst: 'Fundament? Elektriker? Hat keiner erwähnt.',
+		portal: 'Billig angeboten, teuer abgerechnet.',
+		wir: 'Erst aufmessen, dann vergleichbare Angebote einholen.',
+	},
+	{
+		thema: 'Wenn’s hakt',
+		selbst: 'Jeder zeigt auf den anderen.',
+		portal: 'Das Portal? Nicht zuständig.',
+		wir: 'Sie rufen mich an. Ich kümmere mich.',
+	},
+];
+
+const gruende = [
+	{
+		titel: 'Wir finden immer den passenden Handwerker',
+		text: 'Mit Ihren bestehenden Angeboten oder mit Betrieben aus unserem Partnernetzwerk. Sie bekommen den Handwerker, der zu Ihrem Projekt passt und nicht den, der zuerst zurückruft.',
+		farbe: 'bg-muted text-foreground',
+		drehung: '-2deg',
+	},
+	{
+		titel: 'Für Sie komplett kostenlos',
+		text: 'Beauftragen Sie einen unserer Partnerbetriebe, zahlen Sie für unsere Begleitung keinen Cent. Wir werden vom Betrieb bezahlt und sagen das offen.',
+		farbe: 'bg-action text-action-foreground',
+		drehung: '1.5deg',
+	},
+	{
+		titel: 'Unser Vergleich kostet weniger als ein Fehler',
+		text: 'Ein Angebotsvergleich für Ihre Wärmepumpe mit bis zu 5 Angeboten kostet 300 €. Ein vergessener Leitungsweg kostet schnell 1.500 €. Wir finden die Lücken, bevor sie teuer werden.',
+		farbe: 'bg-primary text-primary-foreground',
+		drehung: '-1deg',
+	},
+	{
+		titel: 'Nur geprüfte Betriebe aus der Region',
+		text: 'Wir arbeiten ausschließlich mit Betrieben, die unsere Qualitätsstandards nachweislich erfüllen. Aus der Region – und auch nach der Montage für Sie da.',
+		farbe: 'bg-secondary text-secondary-foreground',
+		drehung: '2deg',
+	},
+	{
+		titel: 'Ein Ansprechpartner von der Heizung bis zur Terrasse',
+		text: 'Wärmepumpe, Photovoltaik, Trockenbau, Malerarbeiten, Terrasse, Geländer und Treppen. Wir stimmen alle Gewerke ab – Sie haben eine Nummer statt zehn.',
+		farbe: 'bg-background text-foreground border border-border',
+		drehung: '-1.5deg',
+	},
+];
+
+const schritte = [
+	{
+		titel: 'Vor-Ort-Termin',
+		text: 'Aufmaß und erste Einschätzung bei Ihnen vor Ort – verständlich und ohne Druck.',
+	},
+	{
+		titel: 'Planung abstimmen',
+		text: 'Feinplanung mit Partnerbetrieben, damit Angebot und Technik zusammenpassen.',
+	},
+	{
+		titel: 'Umsetzung begleiten',
+		text: 'Koordination bis zur Ausführung durch Partnerbetriebe – Sie behalten eine klare Ansprechperson.',
+	},
+];
+
+const focusDark =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+	breadcrumbs={[{ name: 'Start', url: `${siteUrl}/` }]}
+>
+	<section
+		class="relative isolate flex min-h-[100dvh] flex-col overflow-hidden bg-primary text-primary-foreground"
+		aria-labelledby="hero-heading-text"
+	>
+		<div
+			class="pointer-events-none absolute -bottom-32 -left-32 -z-10 h-96 w-96 rounded-full bg-action/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<div
+			class="pointer-events-none absolute -right-32 -top-32 -z-10 h-96 w-96 rounded-full bg-secondary/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<BrandMark
+			class="pointer-events-none absolute -right-48 top-1/2 -z-10 h-176 w-176 -translate-y-1/2 text-primary-foreground/5 lg:-right-24"
+		/>
+
+		<div class="mx-auto flex w-full max-w-6xl flex-1 items-center px-4 pb-16 pt-32 sm:px-6 sm:pt-40">
+			<div class="grid w-full gap-12 lg:grid-cols-12 lg:items-end">
+				<div class="lg:col-span-8">
+					<ul class="flex flex-wrap gap-2">
+						{
+							chips.map((chip) => (
+								<li class="inline-flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-3 py-1 text-xs font-medium text-primary-foreground/80 backdrop-blur-sm">
+									<Icon name={chip.icon} class="h-4 w-4 text-action" />
+									{chip.label}
+								</li>
+							))
+						}
+					</ul>
+
+					<h1
+						id="hero-heading"
+						class="mt-8 max-w-3xl break-words font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-5xl"
+					>
+						<span id="hero-heading-text" class="sr-only">Wir begleiten Sie bei {typewriterText}</span>
+						<span class="block" aria-hidden="true">Wir begleiten Sie bei</span>
+						<span
+							class="grid"
+							aria-hidden="true"
+							data-typewriter={JSON.stringify(heroPhrasen)}
+						>
+							{
+								heroPhrasen.map((phrase) => (
+									<span class="invisible col-start-1 row-start-1">
+										{phrase}
+										<span class="caret ml-1" />
+									</span>
+								))
+							}
+							<span class="col-start-1 row-start-1 text-primary-foreground/45">
+								<span data-typewriter-text>{heroPhrasen[0]}</span>
+								<span class="caret ml-1 bg-action" data-typewriter-caret />
+							</span>
+						</span>
+					</h1>
+
+					<p class="mt-6 max-w-xl text-pretty text-lg text-primary-foreground/70">
+						{siteData.claim} Planung und Koordination in Tuttlingen und Umgebung – die
+						Umsetzung übernehmen geprüfte Partnerbetriebe aus der Region.
+					</p>
+
+					<div class="mt-8 flex flex-wrap gap-3">
+						<a
+							href="#anfrage"
+							class:list={[
+								'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80',
+								focusDark,
+							]}
+						>
+							<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+							Vor-Ort-Termin anfragen
+						</a>
+						<a
+							href="#ablauf"
+							class:list={[
+								'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-3 text-sm font-medium text-primary-foreground backdrop-blur-sm transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+								focusDark,
+							]}
+						>
+							<span class="h-2 w-2 rounded-sm bg-action" aria-hidden="true"></span>
+							So läuft es ab
+						</a>
+					</div>
+				</div>
+
+				<aside
+					class="hidden rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5 p-6 backdrop-blur-md lg:col-span-4 lg:block"
+					aria-label="Ihr nächster Schritt"
+				>
+					<p class="text-xs font-medium uppercase tracking-widest text-primary-foreground/50">
+						Ihr nächster Schritt
+					</p>
+					<p class="mt-4 font-display text-xl font-semibold leading-snug text-primary-foreground">
+						Vor-Ort-Termin mit Aufmaß und erster Einschätzung
+					</p>
+					<p class="mt-2 text-sm text-primary-foreground/65">
+						Gebäude, bestehende Heizung, verfügbare Flächen und Ihre Ziele – einmal sauber
+						aufgenommen.
+					</p>
+					<ContactLink
+						type="phone"
+						class:list={[
+							'mt-6 flex min-h-11 items-center justify-between gap-4 rounded-2xl bg-primary-foreground/10 px-4 py-3 transition-colors duration-150 hover:bg-primary-foreground/15 active:bg-primary-foreground/20',
+							focusDark,
+						]}
+					>
+						<span class="flex items-center gap-3">
+							<Icon name="phone" class="h-4 w-4 text-action" />
+							<span class="font-display text-base font-semibold" data-contact-label>Telefon</span>
+						</span>
+						<Icon name="arrow" class="h-4 w-4 text-primary-foreground/60" />
+					</ContactLink>
+				</aside>
+			</div>
+		</div>
+
+		<div class="border-t border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm">
+			<div class="border-b border-primary-foreground/10">
+				<p
+					class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-6"
+				>
+					<span class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary-foreground/55">
+						<Icon name="pin" class="h-4 w-4 shrink-0 text-action" />
+						Unterwegs in der Region
+					</span>
+					<span class="font-display text-base font-semibold text-primary-foreground">
+						{siteData.areas.join(' · ')}
+					</span>
+				</p>
+			</div>
+			<ul
+				class="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:gap-0 lg:py-12"
+				aria-label="Lemisch in Zahlen"
+			>
+				{
+					kennzahlen.map((kennzahl) => (
+						<li class="flex flex-col border-l border-primary-foreground/15 pl-4 lg:px-6 lg:first:border-l-0 lg:first:pl-0">
+							<p class="flex items-baseline gap-2 font-display font-semibold tabular-nums tracking-tight text-primary-foreground">
+								{kennzahl.praefix && (
+									<span class="text-sm font-medium text-primary-foreground/55">
+										{kennzahl.praefix}
+									</span>
+								)}
+								<span class="text-4xl leading-none sm:text-5xl">{kennzahl.zahl}</span>
+								<span class="h-2 w-2 self-start rounded-sm bg-action" aria-hidden="true" />
+							</p>
+							<p class="mt-4 text-sm font-semibold leading-snug text-primary-foreground">
+								{kennzahl.label}
+							</p>
+							<p class="mt-1 text-xs text-primary-foreground/55">{kennzahl.detail}</p>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	<section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+		<h2
+			class="max-w-4xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+		>
+			Wir planen, koordinieren und begleiten Ihr Vorhaben{' '}
+			<span class="text-muted-foreground/60"
+				>– entweder mit Ihren bestehenden Angeboten oder mit unserem Partner-Netzwerk.</span
+			>
+		</h2>
+	</section>
+
+	<section
+		id="leistungen"
+		class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+		aria-labelledby="leistungen-heading"
+	>
+		<div class="flex flex-wrap items-end justify-between gap-4">
+			<h2
+				id="leistungen-heading"
+				class="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+			>
+				Leistungen
+			</h2>
+			<p class="max-w-sm text-sm text-muted-foreground">
+				Einzeln oder kombiniert – wir planen und koordinieren, Partnerbetriebe aus dem Handwerk
+				setzen um.
+			</p>
+		</div>
+
+		<ul class="mt-8 border-b border-border">
+			{
+				leistungen.map((leistung, index) => (
+					<li class="border-t border-border">
+						<a
+							href={`/${leistung.id}/`}
+							class="group grid grid-cols-[auto_1fr_auto] items-center gap-4 py-8 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 sm:gap-8"
+						>
+							<span class="font-mono text-sm text-muted-foreground">
+								{String(index + 1).padStart(2, '0')}
+							</span>
+							<span class="grid gap-2 sm:grid-cols-2 sm:items-center sm:gap-8">
+								<span class="font-display text-2xl font-semibold tracking-tight text-foreground transition-colors duration-150 group-hover:text-primary sm:text-3xl">
+									{leistung.data.title}
+								</span>
+								<span class="text-sm text-muted-foreground">
+									{leistung.data.kurzbeschreibung}
+								</span>
+							</span>
+							<span class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border text-foreground transition-colors duration-200 ease-out group-hover:border-action group-hover:bg-action group-hover:text-action-foreground group-active:bg-action/80">
+								<Icon
+									name="arrow"
+									class="h-4 w-4 motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover:rotate-45"
+								/>
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section
+		id="vorteil"
+		class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+		aria-labelledby="vorteil-heading"
+	>
+		<div class="grid gap-4 lg:grid-cols-12">
+			<div
+				class="relative isolate flex flex-col justify-between overflow-hidden rounded-3xl bg-primary p-8 text-primary-foreground lg:col-span-5 lg:row-span-2"
+			>
+				<BrandMark
+					class="pointer-events-none absolute -bottom-16 -right-16 -z-10 h-72 w-72 text-primary-foreground/5"
+				/>
+				<div>
+					<p class="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/70">
+						<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+						Ihr Vorteil
+					</p>
+					<h2
+						id="vorteil-heading"
+						class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-4xl"
+					>
+						{siteData.claim}
+					</h2>
+					<p class="mt-6 max-w-md text-primary-foreground/70">
+						Die meisten Vorhaben betreffen mehr als ein Gewerk. Wer Wärmepumpe,
+						Photovoltaik, Überdachung und Innenausbau einzeln organisiert, koordiniert am
+						Ende selbst. Wir übernehmen das – von der ersten Einschätzung bis zur Übergabe.
+					</p>
+				</div>
+				<a
+					href="#anfrage"
+					class="mt-8 inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+				>
+					<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+					Vorhaben besprechen
+				</a>
+			</div>
+
+			<ul class="grid gap-4 sm:grid-cols-2 lg:col-span-7 lg:row-span-2">
+				{
+					vorteile.map((vorteil) => (
+						<li class="rounded-3xl border border-border p-6">
+							<span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-primary">
+								<Icon name={vorteil.icon} class="h-5 w-5" />
+							</span>
+							<h3 class="mt-6 text-xl font-semibold text-foreground">{vorteil.titel}</h3>
+							<p class="mt-2 text-sm text-muted-foreground">{vorteil.text}</p>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+	</section>
+
+	<section
+		id="vergleich"
+		class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+		aria-labelledby="vergleich-heading"
+	>
+		<div class="max-w-3xl">
+			<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+				<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+				Der Vergleich
+			</p>
+			<h2
+				id="vergleich-heading"
+				class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+			>
+				Handwerker finden ist leicht.{' '}
+				<span class="text-muted-foreground/60">Die richtigen nicht.</span>
+			</h2>
+			<p class="mt-6 max-w-xl text-pretty text-lg text-muted-foreground">
+				Was kostet das wirklich? Wem kann ich vertrauen? Und wer kümmert sich, wenn’s hakt?
+			</p>
+		</div>
+
+		<table class="mt-12 hidden w-full table-fixed border-separate border-spacing-0 text-left lg:table">
+			<colgroup>
+				<col class="w-[18%]" />
+				<col class="w-[26%]" />
+				<col class="w-[26%]" />
+				<col class="w-[30%]" />
+			</colgroup>
+			<thead>
+				<tr>
+					<th scope="col" class="pb-4 align-bottom">
+						<span class="sr-only">Thema</span>
+					</th>
+					<th scope="col" class="px-6 pb-4 align-bottom text-sm font-medium text-muted-foreground">
+						{vergleichSpalten.selbst}
+					</th>
+					<th scope="col" class="px-6 pb-4 align-bottom text-sm font-medium text-muted-foreground">
+						{vergleichSpalten.portal}
+					</th>
+					<th
+						scope="col"
+						class="rounded-t-3xl bg-primary px-8 pb-6 pt-8 align-bottom text-primary-foreground"
+					>
+						<span class="flex items-center gap-3">
+							<span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-action text-action-foreground">
+								<BrandMark class="h-6 w-6" />
+							</span>
+							<span class="font-display text-xl font-semibold">{vergleichSpalten.wir}</span>
+						</span>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					vergleich.map((zeile, index) => {
+						const letzte = index === vergleich.length - 1;
+						return (
+							<tr>
+								<th
+									scope="row"
+									class="border-t border-border py-6 pr-6 align-top font-display text-base font-semibold text-foreground"
+								>
+									{zeile.thema}
+								</th>
+								<td class="border-t border-border px-6 py-6 align-top text-muted-foreground">
+									{zeile.selbst}
+								</td>
+								<td class="border-t border-border px-6 py-6 align-top text-muted-foreground">
+									{zeile.portal}
+								</td>
+								<td
+									class:list={[
+										'border-t border-primary-foreground/10 bg-primary px-8 py-6 align-top font-medium text-primary-foreground',
+										letzte && 'rounded-b-3xl pb-8',
+									]}
+								>
+									<span class="flex items-start gap-3">
+										<span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-action text-action-foreground">
+											<Icon name="check" class="h-3 w-3" />
+										</span>
+										{zeile.wir}
+									</span>
+								</td>
+							</tr>
+						);
+					})
+				}
+			</tbody>
+		</table>
+
+		<ul class="mt-8 grid gap-4 lg:hidden">
+			{
+				vergleich.map((zeile) => (
+					<li class="rounded-3xl border border-border p-4 sm:p-6">
+						<h3 class="font-display text-lg font-semibold text-foreground">{zeile.thema}</h3>
+						<dl class="mt-4 grid gap-4 sm:grid-cols-2">
+							<div>
+								<dt class="text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
+									{vergleichSpalten.selbst}
+								</dt>
+								<dd class="mt-1 text-sm text-muted-foreground">{zeile.selbst}</dd>
+							</div>
+							<div>
+								<dt class="text-xs font-medium uppercase tracking-widest text-muted-foreground/70">
+									{vergleichSpalten.portal}
+								</dt>
+								<dd class="mt-1 text-sm text-muted-foreground">{zeile.portal}</dd>
+							</div>
+							<div class="rounded-2xl bg-primary p-4 text-primary-foreground sm:col-span-2">
+								<dt class="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary-foreground/60">
+									<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true" />
+									{vergleichSpalten.wir}
+								</dt>
+								<dd class="mt-2 flex items-start gap-3 font-medium">
+									<span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-action text-action-foreground">
+										<Icon name="check" class="h-3 w-3" />
+									</span>
+									{zeile.wir}
+								</dd>
+							</div>
+						</dl>
+					</li>
+				))
+			}
+		</ul>
+
+		<div
+			class="mt-8 flex flex-col gap-6 rounded-3xl bg-muted p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+		>
+			<p class="max-w-2xl text-pretty font-display text-xl font-semibold leading-snug text-foreground">
+				Ich vergleiche für Sie – aus Betrieben, die unsere Qualitätsstandards nachweislich
+				erfüllen.
+			</p>
+			<a
+				href="#anfrage"
+				class="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-muted sm:self-auto"
+			>
+				<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+				Vor-Ort-Termin anfragen
+			</a>
+		</div>
+	</section>
+
+	<section
+		id="gruende"
+		class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+		aria-labelledby="gruende-heading"
+	>
+		<div class="grid gap-12 lg:grid-cols-12">
+			<div class="lg:col-span-5">
+				<div class="lg:sticky lg:top-32">
+					<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+						<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+						Gute Gründe
+					</p>
+					<h2
+						id="gruende-heading"
+						class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+					>
+						5 Gründe,{' '}
+						<span class="text-muted-foreground/60">
+							warum Eigenheimbesitzer ihre Modernisierung von uns begleiten lassen
+						</span>
+					</h2>
+					<div class="mt-8 hidden lg:block">
+						<a
+							href="#anfrage"
+							class="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+						>
+							<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+							Jetzt unverbindlich anfragen
+						</a>
+						<p class="mt-3 text-sm text-muted-foreground">
+							Wir melden uns innerhalb von 24 Stunden persönlich.
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<ol class="lg:col-span-7">
+				{
+					gruende.map((grund, index) => (
+						<li
+							class="sticky pb-8 last:pb-0 lg:pb-16"
+							style={`top: calc(7rem + ${index * 1.5}rem); z-index: ${index + 1};`}
+						>
+							<article
+								class:list={[
+									'notiz relative min-h-96 rounded-3xl p-6 shadow-2xl shadow-primary/20 sm:min-h-80 sm:p-8',
+									grund.farbe,
+								]}
+								style={`--notiz-drehung: ${grund.drehung};`}
+							>
+								<span
+									class="absolute -top-3 left-1/2 h-6 w-24 -translate-x-1/2 rotate-2 rounded-sm bg-background/60 shadow-sm backdrop-blur-sm"
+									aria-hidden="true"
+								/>
+								<p class="font-mono text-sm opacity-60">
+									<span class="sr-only">Grund </span>0{index + 1} / 0{gruende.length}
+								</p>
+								<h3 class="mt-6 text-balance font-display text-2xl font-semibold leading-tight tracking-tight text-current sm:text-3xl">
+									{grund.titel}
+								</h3>
+								<p class="mt-4 max-w-xl text-pretty opacity-80">{grund.text}</p>
+							</article>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+
+		<div class="mt-12 lg:hidden">
+			<a
+				href="#anfrage"
+				class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-auto"
+			>
+				<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+				Jetzt unverbindlich anfragen
+			</a>
+			<p class="mt-3 text-sm text-muted-foreground">
+				Wir melden uns innerhalb von 24 Stunden persönlich.
+			</p>
+		</div>
+	</section>
+
+	<section id="ablauf" class="px-3 sm:px-4" aria-labelledby="ablauf-heading">
+		<div class="mx-auto max-w-7xl rounded-3xl bg-muted">
+			<div class="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12">
+				<div class="lg:col-span-5">
+					<div class="lg:sticky lg:top-32">
+						<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+							<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+							Ablauf
+						</p>
+						<h2
+							id="ablauf-heading"
+							class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+						>
+							In drei Schritten von der Idee zur Umsetzung
+						</h2>
+						<p class="mt-4 max-w-md text-muted-foreground">
+							Sie wissen bei jedem Schritt, was gerade passiert und was als Nächstes
+							ansteht.
+						</p>
+					</div>
+				</div>
+
+				<ol class="lg:col-span-7">
+					{
+						schritte.map((schritt, index) => (
+							<li class="grid grid-cols-[4rem_1fr] gap-4 border-t border-foreground/10 py-8 first:border-t-0 first:pt-0 sm:grid-cols-[6rem_1fr]">
+								<span
+									class="font-display text-4xl font-semibold leading-none tracking-tight text-action sm:text-5xl"
+								>
+									<span class="sr-only">Schritt </span>
+									{index + 1}
+								</span>
+								<div>
+									<h3 class="text-2xl font-semibold text-foreground">{schritt.titel}</h3>
+									<p class="mt-2 max-w-md text-muted-foreground">{schritt.text}</p>
+								</div>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+		</div>
+	</section>
+
+	<section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24" aria-labelledby="region-heading">
+		<div class="grid gap-12 lg:grid-cols-12 lg:items-center">
+			<div class="lg:col-span-5">
+				<h2
+					id="region-heading"
+					class="inline-flex items-center gap-2 font-sans text-sm font-medium text-muted-foreground"
+				>
+					<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+					Einzugsgebiet
+				</h2>
+				<p
+					class="mt-6 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+				>
+					Von {einzugsgebiet.mitte.name}{' '}
+					<span class="text-muted-foreground/60">zu Ihnen nach Hause.</span>
+				</p>
+				<ul class="mt-8 flex flex-wrap gap-2">
+					{
+						siteData.areas.map((area) => (
+							<li class="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground">
+								<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true" />
+								{area}
+							</li>
+						))
+					}
+				</ul>
+				<p class="mt-8 max-w-md text-muted-foreground">
+					Wir betreuen Hausbesitzer in {siteData.areas.join(', ')} und der näheren Umgebung.
+					Eine Straßenadresse veröffentlichen wir bewusst nicht – Beratung und Aufmaß finden bei
+					Ihnen vor Ort statt.
+				</p>
+			</div>
+			<div class="lg:col-span-7">
+				<div class="relative overflow-hidden rounded-3xl bg-primary p-4 sm:p-6">
+					<div
+						class="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-secondary/20 blur-3xl"
+						aria-hidden="true"
+					>
+					</div>
+					<EinzugsgebietKarte class="relative" />
+				</div>
+				<p class="mt-3 text-xs text-muted-foreground">
+					Schematische Darstellung, Entfernungen in Luftlinie.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<AnfrageSection />
+</BaseLayout>
+
+<script>
+	const root = document.querySelector<HTMLElement>('[data-typewriter]');
+	const output = root?.querySelector<HTMLElement>('[data-typewriter-text]');
+	const caret = root?.querySelector<HTMLElement>('[data-typewriter-caret]');
+
+	if (root && output && caret) {
+		const phrasen: string[] = JSON.parse(root.dataset.typewriter ?? '[]');
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+		const setTyping = (typing: boolean) => {
+			caret.style.animation = typing ? 'none' : '';
+		};
+
+		const run = async () => {
+			let index = 0;
+			while (true) {
+				await wait(2200);
+				const next = (index + 1) % phrasen.length;
+
+				if (reducedMotion.matches) {
+					output.textContent = phrasen[next];
+				} else {
+					setTyping(true);
+					const current = phrasen[index];
+					for (let i = current.length; i >= 0; i--) {
+						output.textContent = current.slice(0, i);
+						await wait(30);
+					}
+					await wait(250);
+					const target = phrasen[next];
+					for (let i = 1; i <= target.length; i++) {
+						output.textContent = target.slice(0, i);
+						await wait(55 + Math.random() * 45);
+					}
+					setTyping(false);
+				}
+				index = next;
+			}
+		};
+
+		run();
+	}
+</script>

@@ -1,0 +1,54 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ArtikelForm from '../../../components/ArtikelForm.astro';
+import { createDb } from '../../../db/client';
+import { env } from 'cloudflare:workers';
+import { gateAdmin } from '../../../lib/admin-page';
+import { getArtikelById } from '../../../lib/artikel-admin';
+import { listBilder } from '../../../lib/bilder-admin';
+
+const gated = await gateAdmin(Astro);
+if (gated instanceof Response) return gated;
+
+const id = Astro.params.id;
+if (!id) return Astro.redirect('/admin/artikel/');
+
+const db = createDb(env.DB);
+const artikel = await getArtikelById(db, id);
+if (!artikel) return Astro.redirect('/admin/artikel/');
+
+const bilder = await listBilder(db, 100);
+---
+
+<AdminLayout title={`${artikel.titel} | Admin`}>
+	<p
+		class="sr-only"
+		data-artikel-status={artikel.status}
+		id="artikel-status-marker"
+	>
+		{artikel.status}
+	</p>
+	<div class="flex flex-wrap items-end justify-between gap-4">
+		<div>
+			<h1 class="font-display text-3xl font-bold text-primary">Artikel bearbeiten</h1>
+			<p class="mt-1 text-sm text-muted-foreground">
+				Status: <strong>{artikel.status}</strong> · Quelle: {artikel.quelle}
+			</p>
+		</div>
+		<a
+			href="/admin/artikel/"
+			class="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		>
+			Zurück zur Liste
+		</a>
+	</div>
+	<div class="mt-8 rounded-md border border-border bg-background p-6">
+		<ArtikelForm artikel={artikel} bilder={bilder} />
+	</div>
+	<script define:vars={{ status: artikel.status }}>
+		const form = document.getElementById('artikel-form');
+		if (form) form.dataset.status = status;
+	</script>
+</AdminLayout>

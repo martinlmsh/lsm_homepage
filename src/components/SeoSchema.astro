@@ -1,0 +1,128 @@
+---
+import { siteData } from '../data/site';
+
+interface BreadcrumbItem {
+	name: string;
+	url: string;
+}
+
+interface ArticleSchema {
+	headline: string;
+	description: string;
+	datePublished: string;
+	dateModified?: string;
+	image?: string;
+	url: string;
+}
+
+interface FaqItem {
+	question: string;
+	answer: string;
+}
+
+interface Props {
+	breadcrumbs: BreadcrumbItem[];
+	service?: {
+		name: string;
+		description: string;
+		url: string;
+	};
+	article?: ArticleSchema;
+	faq?: FaqItem[];
+}
+
+const { breadcrumbs, service, article, faq } = Astro.props;
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const businessId = `${siteUrl}/#betrieb`;
+
+const areaServed = siteData.areas.map((city) => ({
+	'@type': 'City',
+	name: city,
+}));
+
+const business = {
+	'@context': 'https://schema.org',
+	'@type': 'HomeAndConstructionBusiness',
+	'@id': businessId,
+	name: siteData.name,
+	url: `${siteUrl}/`,
+	areaServed,
+};
+
+const breadcrumbList = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: breadcrumbs.map((item, index) => ({
+		'@type': 'ListItem',
+		position: index + 1,
+		name: item.name,
+		item: item.url,
+	})),
+};
+
+const serviceSchema = service
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'Service',
+			name: service.name,
+			description: service.description,
+			url: service.url,
+			provider: {
+				'@id': businessId,
+			},
+			areaServed,
+		}
+	: null;
+
+const articleSchema = article
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'BlogPosting',
+			headline: article.headline,
+			description: article.description,
+			datePublished: article.datePublished,
+			dateModified: article.dateModified ?? article.datePublished,
+			url: article.url,
+			mainEntityOfPage: article.url,
+			author: {
+				'@id': businessId,
+			},
+			publisher: {
+				'@id': businessId,
+			},
+			...(article.image ? { image: article.image } : {}),
+		}
+	: null;
+
+const faqSchema =
+	faq && faq.length > 0
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'FAQPage',
+				mainEntity: faq.map((item) => ({
+					'@type': 'Question',
+					name: item.question,
+					acceptedAnswer: {
+						'@type': 'Answer',
+						text: item.answer,
+					},
+				})),
+			}
+		: null;
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(business)} />
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbList)} />
+{
+	serviceSchema && (
+		<script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+	)
+}
+{
+	articleSchema && (
+		<script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+	)
+}
+{
+	faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+}

@@ -1,0 +1,83 @@
+---
+export const prerender = false;
+
+import { env } from 'cloudflare:workers';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArtikelAnsicht from '../../components/ArtikelAnsicht.astro';
+import { createDb } from '../../db/client';
+import {
+	getBilderByR2Keys,
+	getPublishedArtikelBySlug,
+	getWeiterleitungsSlug,
+	listVerwandteArtikel,
+} from '../../lib/artikel';
+import { extractBildKeys } from '../../lib/editor-markdown';
+import { bilderAlsImageMetas, renderMarkdown } from '../../lib/markdown';
+
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300');
+
+const { slug } = Astro.params;
+if (!slug) {
+	return new Response(null, { status: 404, statusText: 'Not Found' });
+}
+
+const db = createDb(env.DB);
+const entry = await getPublishedArtikelBySlug(db, slug);
+
+if (!entry) {
+	const neuerSlug = await getWeiterleitungsSlug(db, slug);
+	if (neuerSlug) {
+		return Astro.redirect(`/wissenswertes/${neuerSlug}/`, 301);
+	}
+	return new Response(null, { status: 404, statusText: 'Not Found' });
+}
+
+const verwandte = await listVerwandteArtikel(db, entry);
+
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const pageUrl = `${siteUrl}/wissenswertes/${entry.slug}/`;
+const titelbildSrc = entry.titelbild ? `/bilder/${entry.titelbild.r2Key}/` : undefined;
+const titelbildAbs = titelbildSrc ? new URL(titelbildSrc, Astro.site).href : undefined;
+
+const inhaltKeys = extractBildKeys(entry.inhaltMd);
+const titelKey = entry.titelbild?.r2Key;
+const allKeys = [...new Set([...inhaltKeys, ...(titelKey ? [titelKey] : [])])];
+const bildRows = await getBilderByR2Keys(db, allKeys);
+const contentHtml = await renderMarkdown(entry.inhaltMd, {
+	images: bilderAlsImageMetas(bildRows),
+});
+
+const leistungen = await getCollection('leistungen');
+const linkedLeistung = entry.leistung
+	? leistungen.find((l) => l.id === entry.leistung)
+	: undefined;
+
+const published = entry.veroeffentlichtAm ?? entry.aktualisiertAm;
+---
+
+<BaseLayout
+	title={entry.metaTitle}
+	description={entry.metaDescription}
+	canonical={`/wissenswertes/${entry.slug}/`}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: 'Wissenswertes', url: `${siteUrl}/wissenswertes/` },
+		{ name: entry.titel, url: pageUrl },
+	]}
+	article={{
+		headline: entry.titel,
+		description: entry.metaDescription,
+		datePublished: published,
+		dateModified: entry.aktualisiertAm,
+		image: titelbildAbs,
+		url: pageUrl,
+	}}
+>
+	<ArtikelAnsicht
+		entry={entry}
+		contentHtml={contentHtml}
+		verwandte={verwandte}
+		linkedLeistung={linkedLeistung}
+	/>
+</BaseLayout>

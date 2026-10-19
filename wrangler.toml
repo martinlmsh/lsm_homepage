@@ -1,0 +1,33 @@
+name = "lsm-homepage"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+main = "@astrojs/cloudflare/entrypoints/server"
+
+[assets]
+binding = "ASSETS"
+directory = "./dist/client"
+# Worker zuerst nur für dynamische Routen (Bild-Proxy, Wissenswertes, Admin) – sonst liefert ASSETS 404.html.
+# Nicht global `true`: dann umgeht auch `astro dev` die Auslieferung von public/ und src/assets.
+run_worker_first = [
+	"/bilder/*",
+	"/wissenswertes",
+	"/wissenswertes/*",
+	"/sitemap-wissenswertes.xml",
+	"/admin",
+	"/admin/*",
+	"/api/*",
+	"/_server-islands/*",
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lsm-db"
+# Placeholder für lokale Entwicklung; Produktions-ID später setzen
+database_id = "00000000-0000-0000-0000-000000000001"
+migrations_dir = "drizzle"
+
+[[r2_buckets]]
+binding = "BILDER"
+bucket_name = "lsm-bilder"
+preview_bucket_name = "lsm-bilder"

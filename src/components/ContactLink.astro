@@ -1,0 +1,33 @@
+---
+import { emailPayload, phonePayload } from '../lib/contact';
+import { siteData } from '../data/site';
+
+interface Props {
+	type: 'phone' | 'email';
+	class?: string;
+	/** Sichtbarer Text vor dem Entschlüsseln (z. B. „Anrufen“) */
+	fallbackLabel?: string;
+}
+
+const { type, class: className = '', fallbackLabel } = Astro.props;
+
+const phoneE164 = siteData.phoneHref.replace(/^tel:/, '');
+const payload =
+	type === 'phone'
+		? phonePayload(phoneE164, siteData.phoneDisplay)
+		: emailPayload(siteData.email);
+
+const defaultFallback = type === 'phone' ? 'Telefon' : 'E-Mail';
+const label = fallbackLabel ?? defaultFallback;
+---
+
+<a
+	href="/#anfrage"
+	class={className}
+	data-contact={payload}
+	data-contact-type={type}
+>
+	<slot>
+		<span data-contact-label>{label}</span>
+	</slot>
+</a>

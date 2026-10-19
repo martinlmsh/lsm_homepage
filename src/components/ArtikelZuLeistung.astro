@@ -1,0 +1,23 @@
+---
+import { env } from 'cloudflare:workers';
+import ArtikelListe from './ArtikelListe.astro';
+import { createDb } from '../db/client';
+import { listArtikelZuLeistung } from '../lib/artikel';
+
+interface Props {
+	leistung: string;
+}
+
+const { leistung } = Astro.props;
+
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300');
+
+const artikel = await listArtikelZuLeistung(createDb(env.DB), leistung);
+---
+
+<ArtikelListe
+	artikel={artikel}
+	eyebrow="Wissenswertes"
+	titel="Passende Artikel"
+	headingId="leistung-artikel-heading"
+/>

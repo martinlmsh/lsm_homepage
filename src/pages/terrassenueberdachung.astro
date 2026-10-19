@@ -1,0 +1,485 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnfrageSection from '../components/AnfrageSection.astro';
+import ArtikelZuLeistung from '../components/ArtikelZuLeistung.astro';
+import BrandMark from '../components/BrandMark.astro';
+import ContactLink from '../components/ContactLink.astro';
+import FaqAccordion from '../components/FaqAccordion.astro';
+import Icon from '../components/Icon.astro';
+import { siteData } from '../data/site';
+
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const pageUrl = `${siteUrl}/terrassenueberdachung/`;
+
+const metaTitle = 'Terrassenüberdachung Trossingen, Tuttlingen & Region | Lemisch';
+const metaDescription =
+	'Terrassenüberdachung für die Region Schwarzwald-Baar-Heuberg: statisch für unsere Schneelast geplant, montiert von geprüften Betrieben. Antwort in 24 h.';
+const h1 =
+	'Terrassenüberdachung in Trossingen, Tuttlingen, Rottweil und Villingen-Schwenningen';
+const heroIntro =
+	'Mehr Zeit draußen – geplant für unsere Schneelast, montiert von geprüften Betrieben aus der Region.';
+
+const chips = [
+	{ icon: 'roof', label: 'Statik für Baar und Heuberg' },
+	{ icon: 'team', label: 'Geprüfte Betriebe aus der Region' },
+	{ icon: 'user', label: 'Ein Ansprechpartner' },
+] as const;
+
+const vorteile = [
+	{
+		fett: 'Statik für Baar und Heuberg:',
+		rest: ' Ihre Überdachung wird auf die Schneelast an Ihrem Ort ausgelegt – nicht auf einen Durchschnittswert.',
+	},
+	{
+		fett: 'Länger draußen sitzen:',
+		rest: ' auch bei Regen, an kühlen Abenden und bis weit in den Herbst.',
+	},
+	{
+		fett: 'Geprüfte Betriebe aus der Region:',
+		rest: ' kurze Wege, schneller Service, auch nach der Montage.',
+	},
+	{
+		fett: 'Ein Ansprechpartner:',
+		rest: ' von der ersten Idee bis zum ersten Kaffee unterm neuen Dach.',
+	},
+] as const;
+
+const ablauf = [
+	{
+		titel: 'Anfrage',
+		text: 'Wir melden uns innerhalb von 24 Stunden.',
+	},
+	{
+		titel: 'Vor-Ort-Termin',
+		text: 'Wir schauen uns Terrasse, Hauswand, Untergrund und Ihre Wünsche an und nehmen Maß.',
+	},
+	{
+		titel: 'Angebote & Vergleich',
+		text: 'Wir holen Angebote geprüfter Partner ein und erklären jede Position.',
+	},
+	{
+		titel: 'Planung',
+		text: 'Material, Dacheindeckung und Extras wie Seitenwände, Beschattung oder Beleuchtung – und ob eine Genehmigung nötig ist.',
+	},
+	{
+		titel: 'Montage',
+		text: 'Unser Partnerbetrieb montiert, wir bleiben Ihr Ansprechpartner.',
+	},
+];
+
+const wege = [
+	{
+		titel: 'Noch kein Angebot?',
+		text: 'Wir finden Ihren Betrieb – für Sie komplett kostenlos.',
+		button: 'Passenden Betrieb finden',
+		farbe: 'bg-muted text-foreground',
+	},
+	{
+		titel: 'Schon Angebote?',
+		text: 'Wir vergleichen bis zu 5 Angebote neutral – für 300 €. Eine zu schwach ausgelegte Statik kostet schnell mehr.',
+		button: 'Angebote prüfen lassen',
+		farbe: 'bg-primary text-primary-foreground',
+	},
+];
+
+const faqs = [
+	{
+		question: 'Hält die Überdachung unseren Schnee aus?',
+		answer:
+			'Ja, wenn die Statik auf die Schneelast an Ihrem Ort ausgelegt ist – genau darauf achten wir. Nicht jeder Bausatz aus dem Internet reicht für unsere Region.',
+	},
+	{
+		question: 'Brauche ich eine Baugenehmigung?',
+		answer:
+			'Das hängt von Größe, Lage und Bebauungsplan ab. Ob Sie eine Genehmigung brauchen, klären wir vor der Planung – im Zweifel mit dem Bauamt.',
+	},
+	{
+		question: 'Glas oder Polycarbonat?',
+		answer:
+			'Glas ist klar, edel und langlebig. Polycarbonat ist leichter und günstiger. Wir zeigen Ihnen die Unterschiede und was zu Ihrem Haus passt.',
+	},
+	{
+		question: 'Aluminium oder Holz?',
+		answer:
+			'Aluminium ist pflegeleicht und langlebig, Holz wirkt natürlich und braucht regelmäßige Pflege. Wir beraten Sie, was zu Ihrem Haus und Ihrem Alltag passt.',
+	},
+	{
+		question: 'Was kostet eine Terrassenüberdachung?',
+		answer:
+			'Das hängt von Größe, Material und Extras ab. Nach dem Vor-Ort-Termin bekommen Sie realistische Angebote – keine Lockpreise.',
+	},
+	{
+		question: 'Wer montiert die Überdachung?',
+		answer:
+			'Ein geprüfter Fachbetrieb aus unserem Partnernetzwerk. Wir begleiten Sie, der Betrieb montiert und gibt Ihnen die Gewährleistung.',
+	},
+];
+
+const focusDark =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+const focusLight =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const ctaButton =
+	'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80';
+---
+
+<BaseLayout
+	title={metaTitle}
+	description={metaDescription}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: 'Terrassenüberdachung', url: pageUrl },
+	]}
+	service={{
+		name: 'Terrassenüberdachung',
+		description: heroIntro,
+		url: pageUrl,
+	}}
+	faq={faqs}
+>
+	{/* SECTION 1 – Hero */}
+	<section
+		class="relative isolate flex min-h-[100dvh] flex-col overflow-hidden bg-primary text-primary-foreground"
+		aria-labelledby="hero-heading"
+	>
+		<div
+			class="pointer-events-none absolute -bottom-32 -left-32 -z-10 h-96 w-96 rounded-full bg-action/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<div
+			class="pointer-events-none absolute -right-32 -top-32 -z-10 h-96 w-96 rounded-full bg-secondary/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<BrandMark
+			class="pointer-events-none absolute -right-48 top-1/2 -z-10 h-176 w-176 -translate-y-1/2 text-primary-foreground/5 lg:-right-24"
+		/>
+
+		<div class="mx-auto flex w-full max-w-6xl flex-1 items-center px-4 pb-16 pt-32 sm:px-6 sm:pt-40">
+			<div class="grid w-full gap-12 lg:grid-cols-12 lg:items-end">
+				<div class="lg:col-span-8">
+					<ul class="flex flex-wrap gap-2">
+						{
+							chips.map((chip) => (
+								<li class="inline-flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-3 py-1 text-xs font-medium text-primary-foreground/80 backdrop-blur-sm">
+									<Icon name={chip.icon} class="h-4 w-4 text-action" />
+									{chip.label}
+								</li>
+							))
+						}
+					</ul>
+
+					<h1
+						id="hero-heading"
+						class="mt-8 max-w-3xl break-words text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-5xl"
+					>
+						{h1}
+					</h1>
+
+					<p class="mt-6 max-w-xl text-pretty text-lg text-primary-foreground/70">
+						{heroIntro}
+					</p>
+
+					<div class="mt-8 flex flex-wrap gap-3">
+						<a href="#anfrage" class:list={[ctaButton, focusDark]}>
+							<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+							Jetzt Vor-Ort-Termin anfragen
+						</a>
+						<a
+							href="#ablauf"
+							class:list={[
+								'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/5 px-6 py-3 text-sm font-medium text-primary-foreground backdrop-blur-sm transition-colors duration-150 hover:bg-primary-foreground/10 active:bg-primary-foreground/15',
+								focusDark,
+							]}
+						>
+							<span class="h-2 w-2 rounded-sm bg-action" aria-hidden="true"></span>
+							So läuft's ab
+						</a>
+					</div>
+				</div>
+
+				<aside
+					class="hidden rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5 p-6 backdrop-blur-md lg:col-span-4 lg:block"
+					aria-label="Ihr nächster Schritt"
+				>
+					<p class="text-xs font-medium uppercase tracking-widest text-primary-foreground/50">
+						Ihr nächster Schritt
+					</p>
+					<p class="mt-4 font-display text-xl font-semibold leading-snug text-primary-foreground">
+						Vor-Ort-Termin anfragen
+					</p>
+					<p class="mt-2 text-sm text-primary-foreground/65">
+						Wir melden uns innerhalb von 24 Stunden persönlich.
+					</p>
+					<ContactLink
+						type="phone"
+						class:list={[
+							'mt-6 flex min-h-11 items-center justify-between gap-4 rounded-2xl bg-primary-foreground/10 px-4 py-3 transition-colors duration-150 hover:bg-primary-foreground/15 active:bg-primary-foreground/20',
+							focusDark,
+						]}
+					>
+						<span class="flex items-center gap-3">
+							<Icon name="phone" class="h-4 w-4 text-action" />
+							<span class="font-display text-base font-semibold" data-contact-label>Telefon</span>
+						</span>
+						<Icon name="arrow" class="h-4 w-4 text-primary-foreground/60" />
+					</ContactLink>
+				</aside>
+			</div>
+		</div>
+
+		<div class="border-t border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm">
+			<p
+				class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-6"
+			>
+				<span
+					class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary-foreground/55"
+				>
+					<Icon name="pin" class="h-4 w-4 shrink-0 text-action" />
+					Unterwegs in der Region
+				</span>
+				<span class="font-display text-base font-semibold text-primary-foreground">
+					Trossingen · Tuttlingen · Rottweil · Villingen-Schwenningen
+				</span>
+			</p>
+		</div>
+	</section>
+
+	{/* SECTION 2 – Einstieg */}
+	<section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24" aria-label="Einstieg">
+		<p
+			class="max-w-4xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+		>
+			Kaum ist der Kaffee auf der Terrasse, fängt es an zu regnen? Und die Gartenmöbel verbringen den
+			halben Sommer unter der Plane?{' '}
+			<span class="text-muted-foreground/60"
+				>Mit einer Terrassenüberdachung gewinnen Sie einen Wohnraum unter freiem Himmel – von
+				Frühling bis Herbst. Wir zeigen Ihnen, was zu Ihrem Haus passt, was es kostet und wer es
+				zuverlässig montiert.</span
+			>
+		</p>
+	</section>
+
+	{/* SECTION 3 – Vorteile */}
+	<section
+		id="vorteile"
+		class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+		aria-labelledby="vorteile-heading"
+	>
+		<div class="grid gap-4 lg:grid-cols-12">
+			<div
+				class="relative isolate flex flex-col justify-between overflow-hidden rounded-3xl bg-primary p-8 text-primary-foreground lg:col-span-5 lg:row-span-2"
+			>
+				<BrandMark
+					class="pointer-events-none absolute -bottom-16 -right-16 -z-10 h-72 w-72 text-primary-foreground/5"
+				/>
+				<div>
+					<p class="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/70">
+						<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+						Terrassenüberdachung
+					</p>
+					<h2
+						id="vorteile-heading"
+						class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-4xl"
+					>
+						Ihre Vorteile
+					</h2>
+				</div>
+				<a href="#anfrage" class:list={['mt-8 self-start', ctaButton, focusDark]}>
+					<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+					Jetzt Vor-Ort-Termin anfragen
+				</a>
+			</div>
+
+			<ul class="grid gap-4 sm:grid-cols-2 lg:col-span-7 lg:row-span-2">
+				{
+					vorteile.map((vorteil) => (
+						<li class="rounded-3xl border border-border p-6">
+							<span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-action">
+								<Icon name="check" class="h-5 w-5" />
+							</span>
+							<p class="mt-6 font-display text-xl font-semibold leading-snug text-foreground">
+								{vorteil.fett}
+							</p>
+							<p class="mt-2 text-pretty text-sm text-muted-foreground">{vorteil.rest.trim()}</p>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	{/* SECTION 4 – Ablauf */}
+	<section id="ablauf" class="px-3 sm:px-4" aria-labelledby="ablauf-heading">
+		<div class="mx-auto max-w-7xl rounded-3xl bg-muted">
+			<div class="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12">
+				<div class="lg:col-span-5">
+					<div class="lg:sticky lg:top-32">
+						<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+							<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+							Ablauf
+						</p>
+						<h2
+							id="ablauf-heading"
+							class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+						>
+							So läuft's ab
+						</h2>
+					</div>
+				</div>
+
+				<ol class="lg:col-span-7">
+					{
+						ablauf.map((schritt, index) => (
+							<li class="grid grid-cols-[4rem_1fr] gap-4 border-t border-foreground/10 py-8 first:border-t-0 first:pt-0 sm:grid-cols-[6rem_1fr]">
+								<span class="font-display text-4xl font-semibold leading-none tracking-tight text-action sm:text-5xl">
+									<span class="sr-only">Schritt </span>
+									{index + 1}
+								</span>
+								<div>
+									<h3 class="text-2xl font-semibold text-foreground">{schritt.titel}</h3>
+									<p class="mt-2 max-w-md text-muted-foreground">{schritt.text}</p>
+								</div>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+		</div>
+	</section>
+
+	{/* SECTION 5 – Zwei Wege */}
+	<section
+		id="wege"
+		class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+		aria-labelledby="wege-heading"
+	>
+		<div class="max-w-3xl">
+			<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+				<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+				Zwei Wege
+			</p>
+			<h2
+				id="wege-heading"
+				class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+			>
+				Ihre zwei Wege
+			</h2>
+		</div>
+
+		<ul class="mt-12 grid gap-4 md:grid-cols-2">
+			{
+				wege.map((weg) => (
+					<li class:list={['flex flex-col rounded-3xl p-6 sm:p-8', weg.farbe]}>
+						<h3 class="font-display text-2xl font-semibold tracking-tight text-current sm:text-3xl">
+							{weg.titel}
+						</h3>
+						<p class="mt-4 flex-1 text-pretty opacity-80">{weg.text}</p>
+						<a
+							href="#anfrage"
+							class:list={[
+								'mt-8 self-start',
+								ctaButton,
+								weg.farbe.includes('bg-primary') ? focusDark : focusLight,
+							]}
+						>
+							<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+							{weg.button}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	{/* SECTION 6 – Persönlicher Block */}
+	<section class="px-3 sm:px-4" aria-labelledby="ansprechpartner-heading">
+		<div class="mx-auto max-w-7xl rounded-3xl bg-muted">
+			<div
+				class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12"
+			>
+				<figure
+					class="mx-auto flex aspect-[4/5] w-full max-w-xs flex-col items-center justify-center rounded-3xl border border-border bg-background text-muted-foreground lg:col-span-4 lg:mx-0"
+					aria-label="Platzhalter für Foto von Martin Lemisch"
+				>
+					<span
+						class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted text-primary"
+						aria-hidden="true"
+					>
+						<Icon name="user" class="h-10 w-10" />
+					</span>
+					<figcaption class="mt-4 px-4 text-center text-sm">Foto von Martin Lemisch</figcaption>
+				</figure>
+				<div class="lg:col-span-8">
+					<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+						<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+						Persönlich
+					</p>
+					<h2
+						id="ansprechpartner-heading"
+						class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+					>
+						Ihr Ansprechpartner aus der Region
+					</h2>
+					<p class="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground">
+						Ich bin Martin Lemisch aus Trossingen und kenne die Häuser und Winter hier genau. Ich
+						begleite Sie persönlich – vom ersten Gespräch bis Sie zum ersten Mal unter Ihrem neuen
+						Dach sitzen.
+					</p>
+					<p class="mt-6 font-display text-base font-semibold text-foreground">
+						Martin Lemisch, Lemisch Sanierung & Modernisierung
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	{/* SECTION 7 – FAQ */}
+	<section
+		id="faq"
+		class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+		aria-labelledby="faq-heading"
+	>
+		<div class="max-w-3xl">
+			<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+				<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+				FAQ
+			</p>
+			<h2
+				id="faq-heading"
+				class="mt-4 text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+			>
+				Häufige Fragen
+			</h2>
+		</div>
+		<div class="mt-12">
+			<FaqAccordion items={faqs} />
+		</div>
+	</section>
+
+	{/* SECTION 8 – Abschluss-CTA */}
+	<section
+		class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24"
+		aria-label="Jetzt Vor-Ort-Termin anfragen"
+	>
+		<div
+			class="relative isolate flex flex-col gap-6 overflow-hidden rounded-3xl bg-primary p-6 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:p-8"
+		>
+			<BrandMark
+				class="pointer-events-none absolute -bottom-16 -right-16 -z-10 h-64 w-64 text-primary-foreground/5"
+			/>
+			<p class="max-w-2xl text-pretty font-display text-xl font-semibold leading-snug text-primary-foreground">
+				Wir melden uns innerhalb von 24 Stunden persönlich.
+			</p>
+			<a href="#anfrage" class:list={['shrink-0 self-start sm:self-auto', ctaButton, focusDark]}>
+				<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+				Jetzt Vor-Ort-Termin anfragen
+			</a>
+		</div>
+	</section>
+
+	<ArtikelZuLeistung server:defer leistung="terrassenueberdachung" />
+
+	<AnfrageSection selectedLeistung="terrassenueberdachung" />
+</BaseLayout>

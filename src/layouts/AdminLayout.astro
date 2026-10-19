@@ -1,0 +1,79 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = 'Admin – Lemisch Sanierung & Modernisierung' } =
+	Astro.props;
+---
+
+<!doctype html>
+<html lang="de">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="robots" content="noindex, nofollow" />
+		<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+	</head>
+	<body class="flex min-h-screen flex-col bg-muted text-foreground">
+		<header class="border-b border-border bg-primary text-primary-foreground">
+			<div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+				<nav class="flex flex-wrap items-center gap-1" aria-label="Admin">
+					<a
+						href="/admin/"
+						class="inline-flex min-h-11 items-center px-3 font-display text-sm font-bold text-primary-foreground transition-colors duration-150 hover:text-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+					>
+						Admin
+					</a>
+					<a
+						href="/admin/artikel/"
+						class="inline-flex min-h-11 items-center px-3 text-sm text-primary-foreground/80 transition-colors duration-150 hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+					>
+						Artikel
+					</a>
+					<a
+						href="/admin/artikel/neu/"
+						class="inline-flex min-h-11 items-center px-3 text-sm text-primary-foreground/80 transition-colors duration-150 hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+					>
+						Neu
+					</a>
+					<a
+						href="/admin/bilder/"
+						class="inline-flex min-h-11 items-center px-3 text-sm text-primary-foreground/80 transition-colors duration-150 hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+					>
+						Bilder
+					</a>
+				</nav>
+				<div class="flex items-center gap-2">
+					<a
+						href="/"
+						class="inline-flex min-h-11 items-center px-3 text-sm text-primary-foreground/80 transition-colors duration-150 hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+					>
+						Zur Website
+					</a>
+					<button
+						type="button"
+						id="admin-logout"
+						class="inline-flex min-h-11 items-center rounded-md border border-primary-foreground/30 px-3 text-sm transition-colors duration-150 hover:bg-primary-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+					>
+						Abmelden
+					</button>
+				</div>
+			</div>
+		</header>
+		<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+			<slot />
+		</main>
+		<script>
+			document.getElementById('admin-logout')?.addEventListener('click', async () => {
+				await fetch('/api/admin/login', { method: 'DELETE' });
+				window.location.href = '/admin/login/';
+			});
+		</script>
+	</body>
+</html>

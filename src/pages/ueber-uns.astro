@@ -1,0 +1,316 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnfrageSection from '../components/AnfrageSection.astro';
+import BrandMark from '../components/BrandMark.astro';
+import Icon from '../components/Icon.astro';
+
+const siteUrl = Astro.site?.href.replace(/\/$/, '') ?? 'https://example.com';
+const pageUrl = `${siteUrl}/ueber-uns/`;
+
+const metaTitle = 'Über uns | Lemisch Sanierung & Modernisierung, Trossingen';
+const metaDescription =
+	'Seit 2020 in der PV-Branche, mehrere hundert Anlagen realisiert. Wir verbinden Eigenheimbesitzer mit geprüften Handwerkern aus der Region.';
+const h1 = 'Wir verbinden Eigenheimbesitzer mit dem richtigen Handwerker.';
+const heroIntro =
+	'Weil ein guter Handwerker mehr wert ist als das günstigste Angebot – heute und in zehn Jahren.';
+
+const kennzahlen = [
+	{ wert: 'Seit 2020', label: 'in der Photovoltaik-Branche' },
+	{ wert: 'Mehrere hundert', label: 'PV-Anlagen geplant und realisiert' },
+	{ wert: 'Seit 2023', label: 'Wärmepumpen in Ein- und Mehrfamilienhäusern' },
+	{ wert: '100 %', label: 'regionale Partnerbetriebe' },
+] as const;
+
+const kriterien = [
+	{
+		fett: 'Regional ansässig:',
+		rest: ' kurze Wege und schnelle Hilfe, wenn es darauf ankommt.',
+	},
+	{
+		fett: 'Eigene Handwerker:',
+		rest: ' keine Subunternehmer-Ketten, sondern feste Teams, die ihr Handwerk verstehen.',
+	},
+	{
+		fett: 'Nachweisbare Qualität:',
+		rest: ' eingetragen in die Handwerksrolle, mit Referenzen aus der Region.',
+	},
+	{
+		fett: 'Abgesichert:',
+		rest: ' mit nachgewiesener Betriebshaftpflicht und schriftlicher Gewährleistung.',
+	},
+	{
+		fett: 'Faire Preise:',
+		rest: ' transparente Angebote ohne versteckte Kosten oder Lockpreise.',
+	},
+	{
+		fett: 'Erreichbar nach Fertigstellung:',
+		rest: ' Service und Wartung auch Jahre nach dem Einbau.',
+	},
+] as const;
+
+const focusDark =
+	'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+const ctaButton =
+	'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-6 py-3 font-display text-sm font-semibold text-action-foreground transition-colors duration-150 hover:bg-action/90 active:bg-action/80';
+---
+
+<BaseLayout
+	title={metaTitle}
+	description={metaDescription}
+	breadcrumbs={[
+		{ name: 'Start', url: `${siteUrl}/` },
+		{ name: 'Über uns', url: pageUrl },
+	]}
+>
+	{/* SECTION 1 – Hero */}
+	<section
+		class="relative isolate flex min-h-[100dvh] flex-col overflow-hidden bg-primary text-primary-foreground"
+		aria-labelledby="hero-heading"
+	>
+		<div
+			class="pointer-events-none absolute -bottom-32 -left-32 -z-10 h-96 w-96 rounded-full bg-action/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<div
+			class="pointer-events-none absolute -right-32 -top-32 -z-10 h-96 w-96 rounded-full bg-secondary/20 blur-3xl"
+			aria-hidden="true"
+		>
+		</div>
+		<BrandMark
+			class="pointer-events-none absolute -right-48 top-1/2 -z-10 h-176 w-176 -translate-y-1/2 text-primary-foreground/5 lg:-right-24"
+		/>
+
+		<div class="mx-auto flex w-full max-w-6xl flex-1 items-center px-4 pb-16 pt-32 sm:px-6 sm:pt-40">
+			<div class="max-w-3xl">
+				<p class="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/70">
+					<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+					Über uns
+				</p>
+				<h1
+					id="hero-heading"
+					class="mt-8 break-words text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-5xl"
+				>
+					{h1}
+				</h1>
+				<p class="mt-6 max-w-xl text-pretty text-lg text-primary-foreground/70">
+					{heroIntro}
+				</p>
+			</div>
+		</div>
+	</section>
+
+	{/* SECTION 2 – Unsere Geschichte */}
+	<section
+		class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+		aria-labelledby="geschichte-heading"
+	>
+		<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+			<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+			Unsere Geschichte
+		</p>
+		<h2
+			id="geschichte-heading"
+			class="mt-4 max-w-3xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+		>
+			Von der Baustelle zum Partnernetzwerk
+		</h2>
+		<div class="mt-8 max-w-3xl space-y-6 text-pretty text-lg text-muted-foreground">
+			<p>
+				Martin Lemisch sind von klein auf auf der Baustelle aufgewachsen. Er weiß, wie gute Arbeit
+				aussieht und was passiert, wenn an der falschen Stelle gespart wird.
+			</p>
+			<p>
+				Seit 2020 ist die ganze Familie in der Photovoltaik-Branche aktiv. Seitdem haben wir mehrere
+				hundert PV-Anlagen bundesweit geplant und realisiert. Seit 2023 setzen wir außerdem
+				Wärmepumpen in Ein- und Mehrfamilienhäusern um.
+			</p>
+			<p>
+				Aus all diesen Projekten wissen wir genau, worauf es bei einem guten Handwerker ankommt. Und
+				wir wissen, wie schwer es für Eigenheimbesitzer ist, ihn zu finden.
+			</p>
+		</div>
+	</section>
+
+	{/* SECTION 3 – Zahlen */}
+	<section class="border-y border-border bg-background" aria-label="Lemisch in Zahlen">
+		<ul
+			class="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-4 lg:gap-0"
+		>
+			{
+				kennzahlen.map((kennzahl) => (
+					<li class="flex flex-col border-l border-border pl-4 lg:px-6 lg:first:border-l-0 lg:first:pl-0">
+						<p class="font-display text-3xl font-semibold leading-none tracking-tight text-primary sm:text-4xl">
+							{kennzahl.wert}
+						</p>
+						<p class="mt-4 text-sm font-semibold leading-snug text-foreground">{kennzahl.label}</p>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	{/* SECTION 4 – Unser Ziel */}
+	<section
+		class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+		aria-labelledby="ziel-heading"
+	>
+		<h2
+			id="ziel-heading"
+			class="max-w-3xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+		>
+			Unser Ziel
+		</h2>
+		<div class="mt-8 max-w-3xl space-y-6 text-pretty text-lg text-muted-foreground">
+			<p>
+				Deshalb haben wir uns ein klares Ziel gesetzt: Eigenheimbesitzer mit dem richtigen Handwerker
+				zu verbinden.
+			</p>
+			<p>
+				Nicht mit dem, der zuerst zurückruft. Nicht mit dem, der am lautesten wirbt. Sondern mit dem,
+				der zu Ihrem Haus, Ihrem Projekt und Ihren Ansprüchen passt.
+			</p>
+		</div>
+	</section>
+
+	{/* SECTION 5 – Unsere Partner */}
+	<section class="px-3 sm:px-4" aria-labelledby="partner-heading">
+		<div class="mx-auto max-w-7xl rounded-3xl bg-muted">
+			<div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+				<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+					<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+					Unsere Partner
+				</p>
+				<h2
+					id="partner-heading"
+					class="mt-4 max-w-3xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl"
+				>
+					Hohe Anforderungen an unsere Partner
+				</h2>
+				<div class="mt-8 max-w-3xl space-y-6 text-pretty text-muted-foreground">
+					<p>
+						Wir arbeiten ausschließlich mit regional ansässigen Unternehmen, die eigene Handwerker
+						beschäftigen. Jeden Partnerbetrieb prüfen wir streng – damit langfristig gute Qualität
+						verbaut wird und Ihre Handwerker auch nach der Fertigstellung erreichbar bleiben.
+					</p>
+					<p>
+						Gerade bei sensiblen Gewerken wie der Heizung oder der Photovoltaikanlage ist ein
+						langfristiger Partner vor Ort oft wichtiger als das günstigste Angebot eines
+						überregionalen Anbieters. Denn wenn im Winter die Heizung streikt, zählt nicht der Preis
+						von damals – sondern wer heute ans Telefon geht.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	{/* SECTION 6 – Unsere Kriterien */}
+	<section
+		class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+		aria-labelledby="kriterien-heading"
+	>
+		<p class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+			<span class="h-1.5 w-1.5 rounded-full bg-action" aria-hidden="true"></span>
+			Unsere Kriterien
+		</p>
+		<h2
+			id="kriterien-heading"
+			class="mt-4 max-w-3xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl"
+		>
+			Darauf prüfen wir jeden Partnerbetrieb
+		</h2>
+		<ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			{
+				kriterien.map((kriterium) => (
+					<li class="rounded-3xl border border-border p-6">
+						<span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-action">
+							<Icon name="check" class="h-5 w-5" />
+						</span>
+						<p class="mt-6 font-display text-xl font-semibold leading-snug text-foreground">
+							{kriterium.fett}
+						</p>
+						<p class="mt-2 text-pretty text-sm text-muted-foreground">{kriterium.rest.trim()}</p>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	{/* SECTION 7 – Unser Versprechen */}
+	<section class="px-3 sm:px-4" aria-label="Unser Versprechen">
+		<div
+			class="mx-auto flex max-w-7xl items-center justify-center rounded-3xl bg-secondary px-6 py-16 text-center text-secondary-foreground sm:px-12 sm:py-24"
+		>
+			<p
+				class="max-w-3xl text-balance font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl"
+			>
+				Wir finden den richtigen Handwerker, der das passende Produkt zum fairen Preis verbaut – in
+				geprüfter Qualität und auch nach der Fertigstellung erreichbar.
+			</p>
+		</div>
+	</section>
+
+	{/* SECTION 8 – Zitat */}
+	<section class="px-3 pt-16 sm:px-4 sm:pt-24" aria-label="Zitat von Martin Lemisch">
+		<div class="mx-auto max-w-7xl rounded-3xl bg-muted">
+			<div
+				class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12"
+			>
+				<figure
+					class="mx-auto flex aspect-[4/5] w-full max-w-xs flex-col items-center justify-center rounded-3xl border border-border bg-background text-muted-foreground lg:col-span-4 lg:mx-0"
+					aria-label="Platzhalter für Foto von Martin Lemisch"
+				>
+					<span
+						class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted text-primary"
+						aria-hidden="true"
+					>
+						<Icon name="user" class="h-10 w-10" />
+					</span>
+					<figcaption class="mt-4 px-4 text-center text-sm">Foto von Martin Lemisch</figcaption>
+				</figure>
+				<div class="lg:col-span-8">
+					<blockquote>
+						<p
+							class="text-pretty font-display text-2xl font-semibold leading-snug tracking-tight text-foreground sm:text-3xl"
+						>
+							„Ich bin auf der Baustelle groß geworden und habe gesehen, was einen guten Handwerker
+							ausmacht. Genau diese Betriebe bringe ich mit Ihnen zusammen.“
+						</p>
+						<footer class="mt-8 font-display text-base font-semibold text-foreground">
+							Martin Lemisch, Gründer
+						</footer>
+					</blockquote>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	{/* SECTION 9 – Abschluss-CTA */}
+	<section
+		class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+		aria-labelledby="abschluss-heading"
+	>
+		<div
+			class="relative isolate overflow-hidden rounded-3xl bg-primary p-6 text-primary-foreground sm:p-8 lg:p-12"
+		>
+			<BrandMark
+				class="pointer-events-none absolute -bottom-16 -right-16 -z-10 h-64 w-64 text-primary-foreground/5"
+			/>
+			<h2
+				id="abschluss-heading"
+				class="max-w-2xl text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-primary-foreground sm:text-4xl"
+			>
+				Lassen Sie uns über Ihr Projekt sprechen.
+			</h2>
+			<a href="#anfrage" class:list={['mt-8', ctaButton, focusDark]}>
+				<span class="h-2 w-2 rounded-sm bg-action-foreground" aria-hidden="true"></span>
+				Jetzt Vor-Ort-Termin anfragen
+			</a>
+			<p class="mt-4 text-pretty text-primary-foreground">
+				Wir melden uns innerhalb von 24 Stunden persönlich.
+			</p>
+		</div>
+	</section>
+
+	<AnfrageSection />
+</BaseLayout>
