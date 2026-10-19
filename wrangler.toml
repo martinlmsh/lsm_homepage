@@ -23,8 +23,7 @@ run_worker_first = [
 [[d1_databases]]
 binding = "DB"
 database_name = "lsm-db"
-# Placeholder für lokale Entwicklung; Produktions-ID später setzen
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "fb91d473-919d-46af-b41e-0f26a9d278e4"
 migrations_dir = "drizzle"
 
 [[r2_buckets]]
