@@ -27,7 +27,7 @@ export const siteData = {
 	] as const,
 	logo,
 	logoNegativ,
-	icon: '/icon.svg',
+	icon: '/badge.svg',
 } as const;
 
 export type Area = (typeof siteData.areas)[number];
